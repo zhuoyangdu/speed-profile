@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<connections xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/connections_file.xsd">
+    <connection from="L1" to="L3" fromLane="0" toLane="0"/>
+    <connection from="L1" to="L8" fromLane="0" toLane="0"/>
+    <connection from="L1" to="L6" fromLane="0" toLane="0"/>
+    <connection from="L4" to="L2" fromLane="0" toLane="0"/>
+    <connection from="L4" to="L6" fromLane="0" toLane="0"/>
+    <connection from="L4" to="L8" fromLane="0" toLane="0"/>
+    <connection from="L5" to="L8" fromLane="0" toLane="0"/>
+    <connection from="L5" to="L2" fromLane="0" toLane="0"/>
+    <connection from="L5" to="L3" fromLane="0" toLane="0"/>
+    <connection from="L7" to="L6" fromLane="0" toLane="0"/>
+    <connection from="L7" to="L2" fromLane="0" toLane="0"/>
+    <connection from="L7" to="L3" fromLane="0" toLane="0"/>
+</connections>

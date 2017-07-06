@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <node-files value="crossing.nod.xml"/>
+        <edge-files value="crossing.edg.xml"/>
+        <connection-files value="crossing.con.xml"/>
+        <type-files value="crossing.typ.xml"/>
+    </input>
+
+    <output>
+        <output-file value="crossing.net.xml"/>
+    </output>
+
+    <processing>
+        <no-turnarounds value="true"/>
+    </processing>
+
+    <report>
+        <verbose value="true"/>
+    </report>
+
+</configuration>
