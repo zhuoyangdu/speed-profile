@@ -10,7 +10,7 @@
     <time>
         <begin value="54000"/>
         <end value="54900"/>
-        <step-length value="0.01"/>
+        <step-length value="0.02"/>
     </time>
 
     <processing>

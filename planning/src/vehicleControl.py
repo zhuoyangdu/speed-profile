@@ -41,7 +41,7 @@ def init():
         sumoExe = 'sumo-gui'
     sumoBinary = checkBinary(sumoExe)
     traci.start([sumoBinary, "-c", "../data/crossing.sumocfg"])
-    print "Traci initalized."
+    print "Traci initialized."
 
 def destroy():
     traci.close()
@@ -61,7 +61,10 @@ def get_localize():
     return localize
 
 def do_step():
-    print traci.simulation.getCurrentTime()
+    # print traci.simulation.getCurrentTime()
+    [x,y] = traci.vehicle.getPosition("veh5")
+    ang = traci.vehicle.getAngle("veh5")
+    print "route02", x,y,ang
     traci.simulationStep()
 
 def get_obstacles():
