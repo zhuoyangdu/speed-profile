@@ -14,6 +14,10 @@ from planning.msg import DynamicObstacle
 from planning.msg import ObstacleMap
 from constants import *  #configuration file
 
+
+def compute_distance(x1,x2):
+    return math.sqrt(math.pow(x1[0]-x2[0],2) + math.pow(x1[1]-x2[1],2))
+
 class GeometryPath(object):
     def __init__(self):
         # Path spline.
@@ -53,12 +57,62 @@ class Node(object):
     def set_cost(self, cost):
         self.cost = cost
 
+    def print_node(self):
+        rospy.loginfo("node: t %d, s %.3f, v %.3f, id %d, par_id %d", self.time, self.distance, self.velocity, self.self_id, self.parent_id)
+
 class Obstacles(object):
     def __init__(self, obstacle_map):
         self.obstacle_map = obstacle_map
 
     def collision_free(self, node1, node2):
-        return
+        for obs in self.obstacle_map.dynamic_obstacles:
+            obs_x = obs.x
+            obs_y = obs.y
+            obs_ang = obs.theta
+            obs_vel = obs.velocity
+            for t in range(node1.time, node2.time, 0.05):
+                # TODO: confirm coordinate
+                obs_pos_x
+                obs_pos_y
+                vehicle_vel = self.estimate_velocity(node1, node2)
+                s = node1.distance + vehicle_vel * (t - node1.time)
+                vehicle_pos_x = path_spline(s)
+                vehicle_pos_y = path_spline(s)
+                dis = math.sqrt(math.pow(vehicle_pos_x-obs_pos_x, 2) + math.pow(vehicle_pos_y-obs_pos_y,2))
+                if dis <= DANGER_DISTANCE:
+                    return False
+        return True
+
+    def risk_assessment(self, path):
+        min_dis = []
+        for obs in self.obstacle_map.dynamic_obstacles:
+            obs_id = obs.id
+            obs_x = obs.x
+            obs_y = obs.y
+            obs_ang = obs.theta
+            obs_vel = obs.velocity
+            dis = []
+            for node in path:
+                s = node.distance
+                x = path_spline(s)
+                y = path_spline(s)
+                obs_pos_x
+                obs_pos_y
+                ss = compute_distance([x,y],[obs_pos_x, obs_pos_y])
+                dis.append(ss)
+            min_dis.append(min(dis))
+        min_min_dis = min(min_dis)
+        risk = self.nonlinear_risk(min_min_dis)
+        return risk
+
+    def nonlinear_risk(self, dist):
+        if dist < DANGER_DISTANCE:
+            print "error in feasible vertex"
+        if dist > SAFE_DISTANCE:
+            risk = 0
+        else:
+            risk = K_RISK / (dist - DANGER_DISTANCE)
+        return risk
 
 class Tree(object):
     def __init__(self, t0, s0, v0):
@@ -97,7 +151,24 @@ class Tree(object):
         new_node = Node(new_time, new_distance, new_id)
         return new_node
 
+    def get_smooth_cost(self, parent_node, child_node):
+        parent_vel = parent_node.velocity
+        child_vel = estimate_velocity(parent_node, child_node)
+        smoothness = abs(parent_vel - child_vel)
+        return smoothness
+
+    def get_vel_error(self,parent_node,child_node):
+        velocity = estimate_velocity(parent_node, child_node)
+        vel_error = abs(velocity - V_GOAL)
+        return vel_error
+
     def node_cost(self, parent_node, child_node):
+        path = self.get_parent_path(parent_node)
+        path.append(child_node)
+        risk = Obstacles.risk_assessment(path)
+        smoothness = self.get_smooth_cost(parent_node, child_node)
+        e_vel = self.get_vel_error(parent_node, child_node)
+        cost = [risk, smoothness, e_vel]
         return
 
     def near_lower_region(self, node):
@@ -138,7 +209,7 @@ class Tree(object):
             return False
 
     def weighting_cost(self, cost):
-        return
+        return KR * cost[0] + KS * cost[1] + KV * cost[2]
 
     def get_tree_size(self):
         return len(self.nodes)
@@ -154,6 +225,10 @@ class Tree(object):
         return acc
 
     def rebuild_tree(self, near_node, new_node):
+        near_node.parent_id = new_node.self_id
+        near_node.velocity = self.estimate_velocity(new_node, near_node)
+        near_node.cost = self.node_cost(new_node, near_node)
+        self.nodes[near_node.self_id] = near_node
         return
 
     def extend(self, sample):
@@ -196,10 +271,32 @@ class Tree(object):
         return
 
 def reaching_goal(node):
-    return
+    if abs(node.time - T_GOAL) < 0.3:
+        return True
+    return False
 
 def get_path_cost(path):
+    risk = obstacles.risk_assessment(path)
+    smoothness = path_smoothness(path)
+    e_vel = path_vel_error(path)
     return
+
+def path_smoothness(path):
+    sum_acc = 0
+    for i in range(1,len(path)-1):
+        node = path[i]
+        parent_node = path[i-1]
+        delta_v = node.velocity - parent_node.velocity
+        delta_t = node.time - parent_node.time
+        acc = delta_v/delta_t
+        sum_acc = sum_acc + acc
+    return sum_acc
+
+def path_vel_error(path):
+    ev = 0
+    for node in path:
+        ev = ev + abs(node.velocity - V_GOAL)
+    return ev
 
 def random_sample():
     return Node(random(0,T_MAX), random(0, S_MAX))
