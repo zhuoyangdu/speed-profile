@@ -183,13 +183,14 @@ class Planning(object):
     def __init__(self, vehicle_state, obstacle_map):
         obstacles = Obstacles(obstacle_map)
         self.vehicle_state = vehicle_state
+        print "init tree:", "time:", vehicle_state.timestamp, vehicle_state.length, vehicle_state.velocity
         self.tree = Tree(self.vehicle_state.timestamp, self.vehicle_state.length, self.vehicle_state.velocity)
 
     def generate_trajectory(self):
         i = 0
         N_feasible = 0
         N_path = 0
-        min_cost = Inf
+        min_cost = float("Inf")
         while i < MAX_FAILED_ATTEMPTS:
             i = i + 1
             sample = self.random_sample()
@@ -206,6 +207,7 @@ class Planning(object):
                     print "Found", N_path, "paths."
                     if N_path > 10:
                         break
+        return
 
     def random_sample(self):
         return Node(random(0,T_MAX), random(0, S_MAX))
