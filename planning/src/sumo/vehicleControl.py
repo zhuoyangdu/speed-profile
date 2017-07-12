@@ -2,6 +2,8 @@ import os
 import sys
 import subprocess
 import time
+import math
+from constants import *
 
 from planning.msg import Pose
 from planning.msg import Trajectory
@@ -47,9 +49,9 @@ def destroy():
     traci.close()
     print "Traci closed."
 
-def init_vehicle(init_pos, init_speed, init_route):
-    traci.vehicle.addFull(self_veh.get_id(), init_route,departPos=init_pos,departSpeed=init_speed)
-    traci.vehicle.setSpeed(self_veh.get_id(), 0);
+def init_vehicle():
+    traci.vehicle.addFull(self_veh.get_id(), INIT_ROUTE,departPos=INIT_POS,departSpeed=INIT_SPEED)
+    traci.vehicle.setSpeed(self_veh.get_id(), float(INIT_SPEED))
     print "Self vehicle initialized."
 
 def get_localize():
@@ -61,13 +63,11 @@ def get_localize():
     return localize
 
 def do_step():
-    # print traci.simulation.getCurrentTime()
-    [x,y] = traci.vehicle.getPosition("veh5")
-    ang = traci.vehicle.getAngle("veh5")
-    print "route02", x,y,ang
+    print traci.simulation.getCurrentTime()
     traci.simulationStep()
 
 def get_obstacles():
+    (vehicle_x, vehicle_y) = traci.vehicle.getPosition(self_veh.get_id())
     timestamp = traci.simulation.getCurrentTime()
     obs_map = ObstacleMap()
     for veh in traci.vehicle.getIDList():
@@ -78,5 +78,7 @@ def get_obstacles():
             (obs_veh.x,obs_veh.y) = traci.vehicle.getPosition(veh)
             obs_veh.theta = traci.vehicle.getAngle(veh)
             obs_veh.velocity =  traci.vehicle.getSpeed(veh)
-            obs_map.dynamic_obstacles.append(obs_veh)
+            dis = math.sqrt(math.pow(obs_veh.x-vehicle_x,2)+math.pow(obs_veh.y-vehicle_y,2))
+            if dis < OBSTACLE_RANGE:
+                obs_map.dynamic_obstacles.append(obs_veh)
     return obs_map

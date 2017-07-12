@@ -1,2 +1,2 @@
 source ../../devel/setup.bash
-python src/runSim.sh
+python ../src/runSim.py

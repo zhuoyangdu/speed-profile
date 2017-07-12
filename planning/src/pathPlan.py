@@ -1,6 +1,6 @@
 import rospy
 
-import rrtStar
+from rrt.rrtStar import Planning
 
 from planning.msg import Pose
 from planning.msg import Trajectory
@@ -25,5 +25,7 @@ if __name__=="__main__":
     pub_trajectory = rospy.Publisher("/planning/trajectory", Trajectory, queue_size = 10)
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
-        rrtStar.generate_trajectory(localize, obstacle_map)
+        plan = Planning(localize, obstacle_map)
+        trajectory = plan.generate_trajectory()
+        # rrtStar.generate_trajectory(localize, obstacle_map)
         rate.sleep()

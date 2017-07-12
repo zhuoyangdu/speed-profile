@@ -6,113 +6,18 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from scipy import interpolate
+from node import Node
+from geometryPath import GeometryPath
+from constants import *  #configuration file
+from common import *
+from path import *
 
 from planning.msg import Pose
 from planning.msg import Trajectory
 from planning.msg import DynamicObstacle
 from planning.msg import ObstacleMap
-from constants import *  #configuration file
 
-
-def compute_distance(x1,x2):
-    return math.sqrt(math.pow(x1[0]-x2[0],2) + math.pow(x1[1]-x2[1],2))
-
-class GeometryPath(object):
-    def __init__(self):
-        # Path spline.
-        x = []
-        y = []
-        file = open("../data/RoadXY.txt")
-        for line in file.readlines():
-            sl = line.split("\t")
-            x.append(float(sl[0]))
-            y.append(float(sl[1]))
-            #angle.append(float(sl[2]))
-        length = [0]
-        len_t = 0
-        for i in range(1,len(x)):
-            len_t = len_t + math.sqrt(math.pow(x[i]-x[i-1], 2) + math.pow(y[i]-y[i-1],2))
-            length.append(len_t)
-        self.spline_x = interpolate.splrep(length, x)
-        self.spline_y = interpolate.splrep(length, y)
-
-    def path_spline(self, length):
-        sx = interpolate.splev(length, self.spline_x, der=0)
-        sy = interpolate.splev(length, self.spline_y, der=0)
-        return sx, sy
-
-class Node(object):
-    def __init__(self, time, distance, self_id):
-        self.time = time
-        self.distance = distance
-        self.self_id = self_id
-        self.velocity = None
-        self.cost = None
-        self.parent_id = None
-
-    def set_parent_node(self, parent_id):
-        self.set_parent_id = parent_id
-
-    def set_cost(self, cost):
-        self.cost = cost
-
-    def print_node(self):
-        rospy.loginfo("node: t %d, s %.3f, v %.3f, id %d, par_id %d", self.time, self.distance, self.velocity, self.self_id, self.parent_id)
-
-class Obstacles(object):
-    def __init__(self, obstacle_map):
-        self.obstacle_map = obstacle_map
-
-    def collision_free(self, node1, node2):
-        for obs in self.obstacle_map.dynamic_obstacles:
-            obs_x = obs.x
-            obs_y = obs.y
-            obs_ang = obs.theta
-            obs_vel = obs.velocity
-            for t in range(node1.time, node2.time, 0.05):
-                # TODO: confirm coordinate
-                obs_pos_x
-                obs_pos_y
-                vehicle_vel = self.estimate_velocity(node1, node2)
-                s = node1.distance + vehicle_vel * (t - node1.time)
-                vehicle_pos_x = path_spline(s)
-                vehicle_pos_y = path_spline(s)
-                dis = math.sqrt(math.pow(vehicle_pos_x-obs_pos_x, 2) + math.pow(vehicle_pos_y-obs_pos_y,2))
-                if dis <= DANGER_DISTANCE:
-                    return False
-        return True
-
-    def risk_assessment(self, path):
-        min_dis = []
-        for obs in self.obstacle_map.dynamic_obstacles:
-            obs_id = obs.id
-            obs_x = obs.x
-            obs_y = obs.y
-            obs_ang = obs.theta
-            obs_vel = obs.velocity
-            dis = []
-            for node in path:
-                s = node.distance
-                x = path_spline(s)
-                y = path_spline(s)
-                obs_pos_x
-                obs_pos_y
-                ss = compute_distance([x,y],[obs_pos_x, obs_pos_y])
-                dis.append(ss)
-            min_dis.append(min(dis))
-        min_min_dis = min(min_dis)
-        risk = self.nonlinear_risk(min_min_dis)
-        return risk
-
-    def nonlinear_risk(self, dist):
-        if dist < DANGER_DISTANCE:
-            print "error in feasible vertex"
-        if dist > SAFE_DISTANCE:
-            risk = 0
-        else:
-            risk = K_RISK / (dist - DANGER_DISTANCE)
-        return risk
+obstacles = []
 
 class Tree(object):
     def __init__(self, t0, s0, v0):
@@ -270,64 +175,43 @@ class Tree(object):
     def paint_tree():
         return
 
-def reaching_goal(node):
-    if abs(node.time - T_GOAL) < 0.3:
-        return True
-    return False
+    def print_tree():
+        for node in self.nodes:
+            rospy.loginfo("t: %d, s:%.3f. v: %.3f, id: %d, par_id:%d.", node.time, node.distance, node.velocity, node.self_id, node.parent_id)
 
-def get_path_cost(path):
-    risk = obstacles.risk_assessment(path)
-    smoothness = path_smoothness(path)
-    e_vel = path_vel_error(path)
-    return
+class Planning(object):
+    def __init__(self, vehicle_state, obstacle_map):
+        obstacles = Obstacles(obstacle_map)
+        self.vehicle_state = vehicle_state
+        self.tree = Tree(self.vehicle_state.timestamp, self.vehicle_state.length, self.vehicle_state.velocity)
 
-def path_smoothness(path):
-    sum_acc = 0
-    for i in range(1,len(path)-1):
-        node = path[i]
-        parent_node = path[i-1]
-        delta_v = node.velocity - parent_node.velocity
-        delta_t = node.time - parent_node.time
-        acc = delta_v/delta_t
-        sum_acc = sum_acc + acc
-    return sum_acc
+    def generate_trajectory(self):
+        i = 0
+        N_feasible = 0
+        N_path = 0
+        min_cost = Inf
+        while i < MAX_FAILED_ATTEMPTS:
+            i = i + 1
+            sample = self.random_sample()
+            [node_valid, new_node] = self.tree.extend(sample)
+            if node_valid:
+                N_feasible = N_feasible + 1
+                if self.reaching_goal(new_node):
+                    path = self.tree.get_parent_path(new_node)
+                    path_cost = get_path_cost(obstacles, path_cost)
+                    if path_cost < min_cost:
+                        min_cost = path_cost
+                        path_min_cost = path
+                    N_path = N_path + 1
+                    print "Found", N_path, "paths."
+                    if N_path > 10:
+                        break
 
-def path_vel_error(path):
-    ev = 0
-    for node in path:
-        ev = ev + abs(node.velocity - V_GOAL)
-    return ev
+    def random_sample(self):
+        return Node(random(0,T_MAX), random(0, S_MAX))
 
-def random_sample():
-    return Node(random(0,T_MAX), random(0, S_MAX))
-
-def generate_trajectory(vehicle_state, obstacle_map):
-    trajectory = Trajectory()
-    rospy.loginfo("generate trajectory!")
-
-    tree = Tree(INIT_TIME, INIT_DIST, INIT_VEL)
-    cost = Cost()
-    i = 0
-    N_feasible = 0
-    N_path = 0
-    min_cost = Inf
-    while i < MAX_FAILED_ATTEMPTS:
-        i = i + 1
-        sample = random_sample()
-        [node_valid, new_node] = tree.extend(sample)
-        if node_valid:
-            N_feasible = N_feasible + 1
-            if reaching_goal(new_node):
-                path = tree.get_parent_path(new_node)
-                path_cost = get_path_cost(path_cost)
-                if path_cost < min_cost:
-                    min_cost = path_cost
-                    path_min_cost = path
-                N_path = N_path + 1
-                print "Found", N_path, "paths."
-                if N_path > 10:
-                    break
-    return trajectory
-
-if __name__=="__main__":
+    def reaching_goal(self, node):
+        if abs(node.time - T_GOAL) < 0.3:
+            return True
+        return False
 
