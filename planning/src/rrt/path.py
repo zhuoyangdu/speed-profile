@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 import rospy
 import math
-
+from constants import *
 from obstacles import Obstacles
+from node import Node
+
+def print_path(path):
+    for node in path:
+        node.print_node()
 
 def get_path_cost(obstacles, path):
     risk = obstacles.risk_assessment(path)
     smoothness = path_smoothness(path)
     e_vel = path_vel_error(path)
-    return
+    return risk, smoothness, e_vel
 
 def path_smoothness(path):
     sum_acc = 0

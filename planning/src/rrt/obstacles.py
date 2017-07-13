@@ -9,8 +9,8 @@ from planning.msg import DynamicObstacle
 from planning.msg import ObstacleMap
 
 def nonlinear_risk(dist):
-    if dist < DANGER_DISTANCE:
-        print "error in feasible vertex"
+    #if dist < DANGER_DISTANCE:
+        # print "error in feasible vertex"
     if dist > SAFE_DISTANCE:
         risk = 0
     else:
@@ -62,7 +62,7 @@ class Obstacles(object):
                 ss = compute_distance([x,y],[obs_pos_x, obs_pos_y])
                 dis.append(ss)
             min_dis.append(min(dis))
-        print "[DCE] min distance:", min_dis
+        #print "[DCE] min distance:", min_dis
         min_min_dis = min(min_dis)
         risk = nonlinear_risk(min_min_dis)
         return risk

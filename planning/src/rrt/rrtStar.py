@@ -52,11 +52,11 @@ class Tree(object):
 
         min_dist = min(dist)
         if min_dist == float("Inf"):
-            print "[invalid sample] There isn't any node meeting the requirement."
+            #print "[invalid sample] There isn't any node meeting the requirement."
             return None
         else:
-            print "[nearest] nearest node: "
-            self.nodes[nearest_index].print_node()
+            #print "[nearest] nearest node: "
+            #self.nodes[nearest_index].print_node()
             # print "The distance of the nearest node is:", min(dist)
             return self.nodes[nearest_index]
 
@@ -66,8 +66,8 @@ class Tree(object):
         new_distance = near_node.distance + DT * k
         new_id = self.get_tree_size()
         new_node = Node(new_time, new_distance, new_id, near_node.self_id)
-        print "[steer] new node:"
-        new_node.print_node()
+        #print "[steer] new node:"
+        #new_node.print_node()
         return new_node
 
     def get_smooth_cost(self, parent_node, child_node):
@@ -84,16 +84,16 @@ class Tree(object):
     def node_cost(self, parent_node, child_node):
         path = self.get_parent_path(parent_node)
         path.append(child_node)
-        print "[node cost] parent path:"
-        print_path(path)
+        #print "[node cost] parent path:"
+        #print_path(path)
 
         # TODO: the range of the three metrics should be 0-1
         risk = obstacles.risk_assessment(path)
-        print "[node cost] risk assessment:", risk
+        #print "[node cost] risk assessment:", risk
         smoothness = self.get_smooth_cost(parent_node, child_node)
-        print "[node cost] smoothness:", smoothness
+        #print "[node cost] smoothness:", smoothness
         e_vel = self.get_vel_error(parent_node, child_node)
-        print "[node cost] e_vel:", e_vel
+        #print "[node cost] e_vel:", e_vel
         return [risk, smoothness, e_vel]
 
     def near_lower_region(self, node):
@@ -109,8 +109,14 @@ class Tree(object):
         max_time = node.time + UPPER_RANGE[0]
         max_distance = node.distance + UPPER_RANGE[1]
         near_region = []
+        #node.print_node()
+        #print_path(self.nodes)
+        # print "min_time:", node.time, " max_time:", max_time
+        # print "min_distance:", node.distance, "max_dis:",max_distance 
         for tmp_node in self.nodes:
             if tmp_node.time > node.time and tmp_node.time < max_time and tmp_node.distance > node.distance and tmp_node.distance < max_distance:
+                # print "near node:"
+                # tmp_node.print_node()
                 near_region.append(tmp_node)
         return near_region
 
@@ -132,13 +138,14 @@ class Tree(object):
         # print "[feasible] kinematic feasible!"
         collision_free = obstacles.collision_free(parent_node, child_node)
         if collision_free:
-            print "[feasible] node feasible!"
+            #print "[feasible] node feasible!"
             return True
         else:
             # print "[invalid vertex] not feasible!"
             return False
 
     def weighting_cost(self, cost):
+        #print "[weighting cost]:" ,cost[0], cost[1], cost[2]
         return KR * cost[0] + KS * cost[1] + KV * cost[2]
 
     def get_tree_size(self):
@@ -171,37 +178,42 @@ class Tree(object):
 
         # Rewire tree
         if self.vertex_feasible(nearest_node, new_node):
-            print "tree:"
-            print_path(self.nodes)
+            #print "tree:"
+            #print_path(self.nodes)
             node_valid = True
             min_node = nearest_node
             cost_min = self.node_cost(min_node, new_node)
-            print "[node cost]: the cost of the nearest node:",cost_min
+            #print "[node cost]: the cost of the nearest node:",cost_min
 
             near_region = self.near_lower_region(new_node)
-            print "[near region]:"
-            print_path(near_region)
+            #print "[near region]:"
+            #print_path(near_region)
             for near_node in near_region:
                 if self.vertex_feasible(near_node, new_node):
                     cost_near = self.node_cost(near_node, new_node)
+                    #print "[cost near]:", cost_near
                     if self.weighting_cost(cost_near) < self.weighting_cost(cost_min):
+                        #print "[rewire]: change the parent node of the new node!"
                         cost_min = cost_near
                         min_node = near_node
             new_node.parent_id = min_node.self_id
             new_node.self_id = self.get_tree_size()
             new_node.velocity = estimate_velocity(min_node, new_node)
+            new_node.cost = cost_min
             self.add_node(new_node)
 
             near_region = self.near_upper_region(new_node)
             for near_node in near_region:
-                if self.vertex_feasible(near_node, new_node):
+                if self.vertex_feasible(new_node, near_node):
                     cost_near = near_node.cost
                     cost_new = self.node_cost(new_node, near_node)
+                    #print "cost new:", cost_new, " cost near:", cost_near
                     if self.weighting_cost(cost_near) > self.weighting_cost(cost_new):
+                        #print "[rewire]: rebuild tree!"
                         self.rebuild_tree(near_node, new_node)
             return node_valid, new_node
         else:
-            print "[invalid node] no feasible!"
+            #print "[invalid node] no feasible!"
             return node_valid, Node(-1,-1,-1)
 
     def get_parent_path(self, node):
@@ -247,7 +259,11 @@ class Planning(object):
                 N_feasible = N_feasible + 1
                 if self.reaching_goal(new_node):
                     path = self.tree.get_parent_path(new_node)
-                    path_cost = get_path_cost(obstacles, path_cost)
+                    print "[path]: found path:"
+                    print_path(path)
+                    [risk, smoothness, e_vel] = get_path_cost(obstacles, path)
+                    path_cost = risk + smoothness + e_vel
+                    print "[path cost]:", path_cost
                     if path_cost < min_cost:
                         min_cost = path_cost
                         path_min_cost = path
@@ -255,12 +271,12 @@ class Planning(object):
                     print "Found", N_path, "paths."
                     if N_path > 10:
                         break
-            print ""
+            #print ""
         return
 
     def random_sample(self):
         sample = Node(random.uniform(0,T_MAX), random.uniform(0,S_MAX)+self.vehicle_state.length)
-        print "[sample]", sample.time, sample.distance
+        # print "[sample]", sample.time, sample.distance
         return sample
 
     def reaching_goal(self, node):

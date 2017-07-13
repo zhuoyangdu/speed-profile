@@ -15,10 +15,6 @@ def estimate_velocity(parent_node, child_node):
     velocity = (parent_node.distance - child_node.distance)/(parent_node.time - child_node.time)
     return velocity
 
-def print_path(path):
-    for node in path:
-        node.print_node()
-
 class GeometryPath(object):
     def __init__(self):
         # Path spline.
