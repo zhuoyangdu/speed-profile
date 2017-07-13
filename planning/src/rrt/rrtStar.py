@@ -83,17 +83,22 @@ class Tree(object):
 
     def node_cost(self, parent_node, child_node):
         path = self.get_parent_path(parent_node)
-        print path
         path.append(child_node)
+        print "[node cost] parent path:"
+        print_path(path)
+
+        # TODO: the range of the three metrics should be 0-1
         risk = obstacles.risk_assessment(path)
+        print "[node cost] risk assessment:", risk
         smoothness = self.get_smooth_cost(parent_node, child_node)
+        print "[node cost] smoothness:", smoothness
         e_vel = self.get_vel_error(parent_node, child_node)
-        cost = [risk, smoothness, e_vel]
-        return
+        print "[node cost] e_vel:", e_vel
+        return [risk, smoothness, e_vel]
 
     def near_lower_region(self, node):
-        min_time = node.time + LOWER_RANGE[0]
-        min_distance = node.distance + LOWER_RANGE[1]
+        min_time = node.time - LOWER_RANGE[0]
+        min_distance = node.distance - LOWER_RANGE[1]
         near_region = []
         for tmp_node in self.nodes:
             if tmp_node.time < node.time and tmp_node.time > min_time and tmp_node.distance < node.distance and tmp_node.distance > min_distance:
@@ -166,11 +171,16 @@ class Tree(object):
 
         # Rewire tree
         if self.vertex_feasible(nearest_node, new_node):
+            print "tree:"
+            print_path(self.nodes)
             node_valid = True
             min_node = nearest_node
             cost_min = self.node_cost(min_node, new_node)
-            near_region = self.near_lower_region(new_node)
+            print "[node cost]: the cost of the nearest node:",cost_min
 
+            near_region = self.near_lower_region(new_node)
+            print "[near region]:"
+            print_path(near_region)
             for near_node in near_region:
                 if self.vertex_feasible(near_node, new_node):
                     cost_near = self.node_cost(near_node, new_node)
@@ -189,6 +199,7 @@ class Tree(object):
                     cost_new = self.node_cost(new_node, near_node)
                     if self.weighting_cost(cost_near) > self.weighting_cost(cost_new):
                         self.rebuild_tree(near_node, new_node)
+            return node_valid, new_node
         else:
             print "[invalid node] no feasible!"
             return node_valid, Node(-1,-1,-1)
@@ -205,8 +216,9 @@ class Tree(object):
         return
 
     def print_tree():
+        print "[tree]"
         for node in self.nodes:
-            rospy.loginfo("t: %d, s:%.3f. v: %.3f, id: %d, par_id:%d.", node.time, node.distance, node.velocity, node.self_id, node.parent_id)
+            node.print_node()
 
 class Planning(object):
     def __init__(self, vehicle_state, obstacle_map):
@@ -271,12 +283,13 @@ if __name__=="__main__":
     obs.id = "veh2"
     obs.x = 519.9628
     obs.y = 502.55
-    obs.theta = 270.0
+    obs.theta = 270.0/180*math.pi
     obs.velocity = 8
     obstacle_map.dynamic_obstacles = [obs]
 
     # print_map(localize, obstacle_map)
-
+    t0 = time.clock()
     planning = Planning(localize, obstacle_map)
     planning.generate_trajectory()
+    print "time passed:", time.clock() - t0
 

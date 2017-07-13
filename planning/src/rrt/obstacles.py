@@ -28,7 +28,7 @@ class Obstacles(object):
             obs_y = obs.y
             obs_ang = obs.theta
             obs_vel = obs.velocity
-            for t in range(int(node1.time*10), int(node2.time*10), 1):
+            for t in range(int(node1.time*10), int(node2.time*10+1), 1):
                 t = t/10.0
                 # TODO: confirm coordinate
                 obs_pos_x = obs_x + obs_vel * t * math.sin(obs_ang)
@@ -38,6 +38,9 @@ class Obstacles(object):
                 s = node1.distance + vehicle_vel * (t - node1.time)
                 [vehicle_pos_x,vehicle_pos_y] = geometry_path.path_spline(s)
                 dis = compute_distance([vehicle_pos_x, vehicle_pos_y],[obs_pos_x, obs_pos_y])
+                # print "[collision free] vehicle:", vehicle_pos_x, vehicle_pos_y
+                # print "[collision free] obstacles:", obs_pos_x, obs_pos_y
+                # print "[collision free] distance:", dis, "t:",t
                 if dis <= DANGER_DISTANCE:
                     return False
         return True
@@ -48,7 +51,7 @@ class Obstacles(object):
             obs_id = obs.id
             obs_x = obs.x
             obs_y = obs.y
-            obs_ang = obs.theta
+            obs_ang = obs.theta 
             obs_vel = obs.velocity
             dis = []
             for node in path:
@@ -59,6 +62,7 @@ class Obstacles(object):
                 ss = compute_distance([x,y],[obs_pos_x, obs_pos_y])
                 dis.append(ss)
             min_dis.append(min(dis))
+        print "[DCE] min distance:", min_dis
         min_min_dis = min(min_dis)
         risk = nonlinear_risk(min_min_dis)
         return risk

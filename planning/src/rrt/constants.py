@@ -3,6 +3,7 @@ T_MAX = 5
 S_MAX = 60
 S_GOAL = 20
 T_GOAL = 3
+V_GOAL = 10
 
 DT = 0.2
 INIT_VEL = 6

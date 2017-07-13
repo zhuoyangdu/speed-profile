@@ -57,7 +57,7 @@ def init_vehicle():
 def get_localize():
     localize = Pose()
     [localize.x, localize.y] = traci.vehicle.getPosition(self_veh.get_id())
-    localize.theta = traci.vehicle.getAngle(self_veh.get_id())
+    localize.theta = traci.vehicle.getAngle(self_veh.get_id()) / 180 * math.pi
     localize.velocity = traci.vehicle.getSpeed(self_veh.get_id())
     localize.timestamp = float(traci.simulation.getCurrentTime()/1000.0)
     localize.length = traci.vehicle.getDistance(self_veh.get_id())
@@ -77,7 +77,7 @@ def get_obstacles():
             obs_veh.timestamp = timestamp
             obs_veh.id = veh
             (obs_veh.x,obs_veh.y) = traci.vehicle.getPosition(veh)
-            obs_veh.theta = traci.vehicle.getAngle(veh)
+            obs_veh.theta = traci.vehicle.getAngle(veh) / 180 * math.pi
             obs_veh.velocity =  traci.vehicle.getSpeed(veh)
             dis = math.sqrt(math.pow(obs_veh.x-vehicle_x,2)+math.pow(obs_veh.y-vehicle_y,2))
             if dis < OBSTACLE_RANGE:
