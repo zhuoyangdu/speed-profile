@@ -2,13 +2,13 @@
 import rospy
 
 class Node(object):
-    def __init__(self, time, distance, self_id=-1):
+    def __init__(self, time, distance, self_id=-1, parent_id=None):
         self.time = time
         self.distance = distance
         self.self_id = self_id
         self.velocity = None
         self.cost = None
-        self.parent_id = None
+        self.parent_id = parent_id
 
     def set_parent_node(self, parent_id):
         self.set_parent_id = parent_id

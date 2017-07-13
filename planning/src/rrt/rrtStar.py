@@ -27,7 +27,7 @@ class Tree(object):
         first_node.self_id = 0
         first_node.parent_id = -1
         self.nodes = [first_node]
-        first_node.print_node()
+        # first_node.print_node()
 
     def add_node(self, node):
         self.nodes.append(node)
@@ -37,14 +37,14 @@ class Tree(object):
         for tmp_node in self.nodes:
             delta_s = node.distance - tmp_node.distance
             delta_t = node.time - tmp_node.time
-            print "delta_s:", delta_s," delta_t:", delta_t
+            #print "delta_s:", delta_s," delta_t:", delta_t
             if delta_s<=0 or delta_t <=0:
                 dist.append(float("Inf"))
             else:
                 vel = delta_s / delta_t
                 acc = (tmp_node.velocity - vel) / delta_t
                 if vel > MAX_VEL or acc > MAX_ACC:
-                    print "velocity or acceleration is too large:", vel, acc
+                    # print "velocity or acceleration is too large:", vel, acc
                     dist.append(float("Inf"))
                 else:
                     dist.append(math.sqrt(math.pow(delta_s/S_MAX,2)+math.pow(delta_t/T_MAX,2)))
@@ -52,21 +52,21 @@ class Tree(object):
 
         min_dist = min(dist)
         if min_dist == float("Inf"):
-            print "There isn't any node meeting the requirement."
+            print "[invalid sample] There isn't any node meeting the requirement."
             return None
         else:
-            print "nearest node: "
+            print "[nearest] nearest node: "
             self.nodes[nearest_index].print_node()
-            print "The distance of the nearest node is:", min(dist)
+            # print "The distance of the nearest node is:", min(dist)
             return self.nodes[nearest_index]
 
     def steer(self, near_node, sample):
-        k = self.estimate_velocity(near_node - sample)
+        k = estimate_velocity(near_node, sample)
         new_time = near_node.time + DT
         new_distance = near_node.distance + DT * k
         new_id = self.get_tree_size()
-        new_node = Node(new_time, new_distance, new_id)
-        print "new node:"
+        new_node = Node(new_time, new_distance, new_id, near_node.self_id)
+        print "[steer] new node:"
         new_node.print_node()
         return new_node
 
@@ -83,6 +83,7 @@ class Tree(object):
 
     def node_cost(self, parent_node, child_node):
         path = self.get_parent_path(parent_node)
+        print path
         path.append(child_node)
         risk = Obstacles.risk_assessment(path)
         smoothness = self.get_smooth_cost(parent_node, child_node)
@@ -111,17 +112,20 @@ class Tree(object):
     def vertex_feasible(self, parent_node, child_node):
         # Kinematic feasible
         kinematic_feasible = True
-        if parent_node.time <= child_node.time or parent_node.distance < child_node.distance:
-            print "error in find nodes."
+        if parent_node.time >= child_node.time or parent_node.distance > child_node.distance:
+            print "[feasible] error in find nodes."
             return False
-        vel = self.estimate_velocity(parent_node, child_node)
-        if abs(vel) > MAC_VEL:
+        vel = estimate_velocity(parent_node, child_node)
+        # print "[feasible] vel", vel
+        if abs(vel) > MAX_VEL:
             return False
         acc = self.estimate_acceleration(parent_node, child_node)
+        # print "[feasible] acc", acc
         if abs(acc) > MAX_ACC:
             return False
 
-        collision_free = Obstacles.collision_free()
+        print "[feasible] kinematic feasible!"
+        collision_free = obstacles.collision_free(parent_node, child_node)
         if collision_free:
             return True
         else:
@@ -133,10 +137,6 @@ class Tree(object):
     def get_tree_size(self):
         return len(self.nodes)
 
-    def estimate_velocity(self, parent_node, child_node):
-        velocity = (parent_node.distance - child_node.distance)/(parent_node.time - child_node.time)
-        return velocity
-
     def estimate_acceleration(self, parent_node, child_node):
         vel = estimate_velocity(parent_node, child_node)
         parent_vel = parent_node.velocity
@@ -145,7 +145,7 @@ class Tree(object):
 
     def rebuild_tree(self, near_node, new_node):
         near_node.parent_id = new_node.self_id
-        near_node.velocity = self.estimate_velocity(new_node, near_node)
+        near_node.velocity = estimate_velocity(new_node, near_node)
         near_node.cost = self.node_cost(new_node, near_node)
         self.nodes[near_node.self_id] = near_node
         return
@@ -154,17 +154,21 @@ class Tree(object):
         # Represents the validation of the sample
         node_valid = False
 
-        # Get the nearest node of the sample, if None, return.
+        # Gets the nearest node of the sample, if None, return.
         nearest_node = self.nearest(sample)
         if nearest_node is None:
-            return
+            return node_valid, Node(-1,-1,-1)
 
+        # Steer function.
         new_node = self.steer(nearest_node, sample)
+
+        # Rewire tree
         if self.vertex_feasible(nearest_node, new_node):
             node_valid = True
             min_node = nearest_node
             cost_min = self.node_cost(min_node, new_node)
             near_region = self.near_lower_region(new_node)
+
             for near_node in near_region:
                 if self.vertex_feasible(near_node, new_node):
                     cost_near = self.node_cost(near_node, new_node)
@@ -173,7 +177,7 @@ class Tree(object):
                         min_node = near_node
             new_node.parent_id = min_node.self_id
             new_node.self_id = self.get_tree_size()
-            new_node.velocity = self.estimate_velocity(min_node, new_node)
+            new_node.velocity = estimate_velocity(min_node, new_node)
             self.add_node(new_node)
 
             near_region = self.near_upper_region(new_node)
@@ -183,6 +187,8 @@ class Tree(object):
                     cost_new = self.node_cost(new_node, near_node)
                     if self.weighting_cost(cost_near) > self.weighting_cost(cost_new):
                         self.rebuild_tree(near_node, new_node)
+        else:
+            return node_valid, Node(-1,-1,-1)
 
     def get_parent_path(self, node):
         path = [node]
@@ -207,6 +213,7 @@ class Planning(object):
         vehicle_state.timestamp = 0
         self.tree = Tree(0, 0, self.v0)
 
+        global obstacles
         obstacles = Obstacles(obstacle_map)
         for obs in obstacles.obstacles:
             obs.timestamp = obs.timestamp - vehicle_state.timestamp
@@ -232,11 +239,12 @@ class Planning(object):
                     print "Found", N_path, "paths."
                     if N_path > 10:
                         break
+            print ""
         return
 
     def random_sample(self):
         sample = Node(random.uniform(0,T_MAX), random.uniform(0,S_MAX))
-        print "random sample:", sample.time, sample.distance
+        print "[sample]", sample.time, sample.distance
         return sample
 
     def reaching_goal(self, node):
