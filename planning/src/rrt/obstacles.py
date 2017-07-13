@@ -28,7 +28,8 @@ class Obstacles(object):
             obs_y = obs.y
             obs_ang = obs.theta
             obs_vel = obs.velocity
-            for t in range(node1.time, node2.time, 0.05):
+            for t in range(int(node1.time*10), int(node2.time*10), 1):
+                t = t/10.0
                 # TODO: confirm coordinate
                 obs_pos_x
                 obs_pos_y
