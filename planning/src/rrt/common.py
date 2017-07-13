@@ -44,7 +44,7 @@ class GeometryPath(object):
     def get_nearest_point(self,x,y):
         dis = []
         for i in range(0,len(self.path_x)):
-            distance = math.sqrt(math.pow(x-path_x[i],2) + math.pow(y-path_y[i],2))
+            distance = math.sqrt(math.pow(x-self.path_x[i],2) + math.pow(y-self.path_y[i],2))
             dis.append(distance)
         index = dis.index(min(dis))
         return index
@@ -52,12 +52,11 @@ class GeometryPath(object):
     def get_path_length(self,x,y):
         nearest_index = self.get_nearest_point(x,y)
         path_length = 0
-        for i in range(0,index):
-            path_length += compute_distance([path_x[i], path_y[i]],[path_x[i+1], path_y[i+1]])
+        for i in range(0,nearest_index):
+            path_length += compute_distance([self.path_x[i], self.path_y[i]],[self.path_x[i+1], self.path_y[i+1]])
         return path_length
 
-    def path_spline(self, x, y, length):
-        path_length = length + self.get_path_length(x,y)
+    def path_spline(self, path_length):
         sx = interpolate.splev(path_length, self.spline_x, der=0)
         sy = interpolate.splev(path_length, self.spline_y, der=0)
         return sx,sy

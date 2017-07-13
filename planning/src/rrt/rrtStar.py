@@ -85,7 +85,7 @@ class Tree(object):
         path = self.get_parent_path(parent_node)
         print path
         path.append(child_node)
-        risk = Obstacles.risk_assessment(path)
+        risk = obstacles.risk_assessment(path)
         smoothness = self.get_smooth_cost(parent_node, child_node)
         e_vel = self.get_vel_error(parent_node, child_node)
         cost = [risk, smoothness, e_vel]
@@ -113,7 +113,7 @@ class Tree(object):
         # Kinematic feasible
         kinematic_feasible = True
         if parent_node.time >= child_node.time or parent_node.distance > child_node.distance:
-            print "[feasible] error in find nodes."
+            # print "[feasible] error in find nodes."
             return False
         vel = estimate_velocity(parent_node, child_node)
         # print "[feasible] vel", vel
@@ -124,11 +124,13 @@ class Tree(object):
         if abs(acc) > MAX_ACC:
             return False
 
-        print "[feasible] kinematic feasible!"
+        # print "[feasible] kinematic feasible!"
         collision_free = obstacles.collision_free(parent_node, child_node)
         if collision_free:
+            print "[feasible] node feasible!"
             return True
         else:
+            # print "[invalid vertex] not feasible!"
             return False
 
     def weighting_cost(self, cost):
@@ -188,6 +190,7 @@ class Tree(object):
                     if self.weighting_cost(cost_near) > self.weighting_cost(cost_new):
                         self.rebuild_tree(near_node, new_node)
         else:
+            print "[invalid node] no feasible!"
             return node_valid, Node(-1,-1,-1)
 
     def get_parent_path(self, node):
@@ -207,11 +210,12 @@ class Tree(object):
 
 class Planning(object):
     def __init__(self, vehicle_state, obstacle_map):
+        vehicle_state.length = geometry_path.get_path_length(vehicle_state.x, vehicle_state.y)
         self.vehicle_state = vehicle_state
         self.v0 = vehicle_state.velocity
 
         vehicle_state.timestamp = 0
-        self.tree = Tree(0, 0, self.v0)
+        self.tree = Tree(0, self.vehicle_state.length, self.v0)
 
         global obstacles
         obstacles = Obstacles(obstacle_map)
@@ -243,7 +247,7 @@ class Planning(object):
         return
 
     def random_sample(self):
-        sample = Node(random.uniform(0,T_MAX), random.uniform(0,S_MAX))
+        sample = Node(random.uniform(0,T_MAX), random.uniform(0,S_MAX)+self.vehicle_state.length)
         print "[sample]", sample.time, sample.distance
         return sample
 

@@ -31,12 +31,12 @@ class Obstacles(object):
             for t in range(int(node1.time*10), int(node2.time*10), 1):
                 t = t/10.0
                 # TODO: confirm coordinate
-                obs_pos_x
-                obs_pos_y
-                vehicle_vel = self.estimate_velocity(node1, node2)
+                obs_pos_x = obs_x + obs_vel * t * math.sin(obs_ang)
+                obs_pos_y = obs_y + obs_vel * t * math.cos(obs_ang)
+
+                vehicle_vel = estimate_velocity(node1, node2)
                 s = node1.distance + vehicle_vel * (t - node1.time)
-                vehicle_pos_x = geometry_path.path_spline(s)
-                vehicle_pos_y = geometry_path.path_spline(s)
+                [vehicle_pos_x,vehicle_pos_y] = geometry_path.path_spline(s)
                 dis = compute_distance([vehicle_pos_x, vehicle_pos_y],[obs_pos_x, obs_pos_y])
                 if dis <= DANGER_DISTANCE:
                     return False
@@ -53,10 +53,9 @@ class Obstacles(object):
             dis = []
             for node in path:
                 s = node.distance
-                x = geometry_path.path_spline(s)
-                y = geometry_path.path_spline(s)
-                obs_pos_x
-                obs_pos_y
+                [x,y] = geometry_path.path_spline(s)
+                obs_pos_x = obs_x + obs_vel * node.time * math.sin(obs_ang)
+                obs_pos_y = obs_y + obs_vel * node.time * math.cos(obs_ang)
                 ss = compute_distance([x,y],[obs_pos_x, obs_pos_y])
                 dis.append(ss)
             min_dis.append(min(dis))
