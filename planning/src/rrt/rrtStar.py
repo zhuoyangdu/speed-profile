@@ -7,10 +7,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from node import Node
-from geometryPath import GeometryPath
 from constants import *  #configuration file
 from common import *
 from path import *
+from visualization import print_map
 
 from planning.msg import Pose
 from planning.msg import Trajectory
@@ -24,7 +24,10 @@ class Tree(object):
         first_node = Node(t0, s0, 0);
         first_node.velocity = v0
         first_node.cost = 0
+        first_node.self_id = 0
+        first_node.parent_id = -1
         self.nodes = [first_node]
+        first_node.print_node()
 
     def add_node(self, node):
         self.nodes.append(node)
@@ -32,28 +35,39 @@ class Tree(object):
     def nearest(self, node):
         dist = []
         for tmp_node in self.nodes:
-            delta_s = tmp_node.distance - node.distance
-            delta_t = tmp_node.time - node.time
+            delta_s = node.distance - tmp_node.distance
+            delta_t = node.time - tmp_node.time
+            print "delta_s:", delta_s," delta_t:", delta_t
             if delta_s<=0 or delta_t <=0:
-                dist.append(float('Inf'))
+                dist.append(float("Inf"))
             else:
                 vel = delta_s / delta_t
                 acc = (tmp_node.velocity - vel) / delta_t
                 if vel > MAX_VEL or acc > MAX_ACC:
-                    dist.append(float('Inf'))
+                    print "velocity or acceleration is too large:", vel, acc
+                    dist.append(float("Inf"))
                 else:
                     dist.append(math.sqrt(math.pow(delta_s/S_MAX,2)+math.pow(delta_t/T_MAX,2)))
         nearest_index = dist.index(min(dist))
-        print "nearest node:", nearest_index
-        print "min_distance:", min(dist)
-        return self.nodes[nearest_index]
 
-    def steer(self, nearest_node, sample):
+        min_dist = min(dist)
+        if min_dist == float("Inf"):
+            print "There isn't any node meeting the requirement."
+            return None
+        else:
+            print "nearest node: "
+            self.nodes[nearest_index].print_node()
+            print "The distance of the nearest node is:", min(dist)
+            return self.nodes[nearest_index]
+
+    def steer(self, near_node, sample):
         k = self.estimate_velocity(near_node - sample)
         new_time = near_node.time + DT
         new_distance = near_node.distance + DT * k
         new_id = self.get_tree_size()
         new_node = Node(new_time, new_distance, new_id)
+        print "new node:"
+        new_node.print_node()
         return new_node
 
     def get_smooth_cost(self, parent_node, child_node):
@@ -137,8 +151,14 @@ class Tree(object):
         return
 
     def extend(self, sample):
+        # Represents the validation of the sample
         node_valid = False
+
+        # Get the nearest node of the sample, if None, return.
         nearest_node = self.nearest(sample)
+        if nearest_node is None:
+            return
+
         new_node = self.steer(nearest_node, sample)
         if self.vertex_feasible(nearest_node, new_node):
             node_valid = True
@@ -181,10 +201,15 @@ class Tree(object):
 
 class Planning(object):
     def __init__(self, vehicle_state, obstacle_map):
-        obstacles = Obstacles(obstacle_map)
         self.vehicle_state = vehicle_state
-        print "init tree:", "time:", vehicle_state.timestamp, vehicle_state.length, vehicle_state.velocity
-        self.tree = Tree(self.vehicle_state.timestamp, self.vehicle_state.length, self.vehicle_state.velocity)
+        self.v0 = vehicle_state.velocity
+
+        vehicle_state.timestamp = 0
+        self.tree = Tree(0, 0, self.v0)
+
+        obstacles = Obstacles(obstacle_map)
+        for obs in obstacles.obstacles:
+            obs.timestamp = obs.timestamp - vehicle_state.timestamp
 
     def generate_trajectory(self):
         i = 0
@@ -210,10 +235,36 @@ class Planning(object):
         return
 
     def random_sample(self):
-        return Node(random(0,T_MAX), random(0, S_MAX))
+        sample = Node(random.uniform(0,T_MAX), random.uniform(0,S_MAX))
+        print "random sample:", sample.time, sample.distance
+        return sample
 
     def reaching_goal(self, node):
         if abs(node.time - T_GOAL) < 0.3:
             return True
         return False
+
+if __name__=="__main__":
+    localize = Pose()
+    localize.timestamp = 54000.4
+    localize.x = 502.55
+    localize.y = 481.2
+    localize.theta = 0
+    localize.length = 0
+    localize.velocity = 6
+
+    obstacle_map = ObstacleMap()
+    obs = DynamicObstacle()
+    obs.timestamp = 54000.4
+    obs.id = "veh2"
+    obs.x = 519.9628
+    obs.y = 502.55
+    obs.theta = 270.0
+    obs.velocity = 8
+    obstacle_map.dynamic_obstacles = [obs]
+
+    # print_map(localize, obstacle_map)
+
+    planning = Planning(localize, obstacle_map)
+    planning.generate_trajectory()
 

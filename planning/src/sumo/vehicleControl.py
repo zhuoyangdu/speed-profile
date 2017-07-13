@@ -59,7 +59,8 @@ def get_localize():
     [localize.x, localize.y] = traci.vehicle.getPosition(self_veh.get_id())
     localize.theta = traci.vehicle.getAngle(self_veh.get_id())
     localize.velocity = traci.vehicle.getSpeed(self_veh.get_id())
-    localize.timestamp = traci.simulation.getCurrentTime()
+    localize.timestamp = float(traci.simulation.getCurrentTime()/1000.0)
+    localize.length = traci.vehicle.getDistance(self_veh.get_id())
     return localize
 
 def do_step():
@@ -68,7 +69,7 @@ def do_step():
 
 def get_obstacles():
     (vehicle_x, vehicle_y) = traci.vehicle.getPosition(self_veh.get_id())
-    timestamp = traci.simulation.getCurrentTime()
+    timestamp = float(traci.simulation.getCurrentTime()/1000.0)
     obs_map = ObstacleMap()
     for veh in traci.vehicle.getIDList():
         if veh != self_veh.get_id():

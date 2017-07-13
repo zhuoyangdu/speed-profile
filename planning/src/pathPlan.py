@@ -14,12 +14,14 @@ localize_ready = False
 obstacle_ready = False
 
 def callback_localize(msg):
+    global localize
     localize = msg
     global localize_ready
     localize_ready = True
     # rospy.loginfo("localize callback.")
 
 def callback_obstacle(msg):
+    global obstacle_map
     obstacle_map = msg
     global obstacle_ready
     obstacle_ready = True

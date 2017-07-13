@@ -20,6 +20,7 @@ def nonlinear_risk(dist):
 class Obstacles(object):
     def __init__(self, obstacle_map):
         self.obstacle_map = obstacle_map
+        self.obstacles = obstacle_map.dynamic_obstacles
 
     def collision_free(self, node1, node2):
         for obs in self.obstacle_map.dynamic_obstacles:

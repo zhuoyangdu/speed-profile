@@ -1,4 +1,4 @@
-uint64 timestamp
+float64 timestamp
 string id
 float64 x
 float64 y

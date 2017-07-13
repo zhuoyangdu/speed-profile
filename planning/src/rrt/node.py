@@ -2,7 +2,7 @@
 import rospy
 
 class Node(object):
-    def __init__(self, time, distance, self_id):
+    def __init__(self, time, distance, self_id=-1):
         self.time = time
         self.distance = distance
         self.self_id = self_id
@@ -17,4 +17,4 @@ class Node(object):
         self.cost = cost
 
     def print_node(self):
-        rospy.loginfo("node: t %d, s %.3f, v %.3f, id %d, par_id %d", self.time, self.distance, self.velocity, self.self_id, self.parent_id)
+        print "node t:", self.time, " s:", self.distance," v:",self.velocity," id:",self.self_id," par_id:",self.parent_id
