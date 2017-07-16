@@ -224,7 +224,20 @@ class Tree(object):
             node = parent_node
         return path
 
-    def paint_tree():
+    def record_tree(self):
+        file = open("tree.txt","w")
+        for node in self.nodes:
+            log = "%f\t%f\t%f\t%d\t%d\t\n" % (node.time, node.distance, node.velocity, node.self_id, node.parent_id)
+            file.write(log)
+        file.close()
+
+    def paint_tree(self):
+        plt.figure("tree")
+        for i in range(1,self.get_tree_size()-1):
+            child_node = self.nodes[i]
+            parent_node = self.nodes[child_node.parent_id]
+            plt.plot([child_node.time, parent_node.time],[child_node.distance, parent_node.distance])
+            plt.show()
         return
 
     def print_tree():
@@ -269,7 +282,8 @@ class Planning(object):
                         path_min_cost = path
                     N_path = N_path + 1
                     print "Found", N_path, "paths."
-                    if N_path > 10:
+                    if N_path > 2:
+                        self.tree.record_tree()
                         break
             #print ""
         return

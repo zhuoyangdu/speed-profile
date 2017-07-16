@@ -48,3 +48,36 @@ def print_map(localize, obs_map):
     plt.pause(0.001)
     plt.draw()
     return
+
+def paint_tree():
+    t = []
+    s = []
+    v = []
+    self_id = []
+    parent_id = []
+    file = open("tree.txt","r")
+    lines = file.readlines(10000)
+    for  line in lines:
+        sl = line.split("\t")
+        #print sl
+        t.append(float(sl[0]))
+        s.append(float(sl[1]))
+        v.append(float(sl[2]))
+        self_id.append(int(sl[3]))
+        parent_id.append(int(sl[4]))
+
+    plt.figure("tree")
+    for i in range(1, len(t)):
+        child_time = t[i]
+        child_s = s[i]
+        child_v = v[i]
+        parent = parent_id[i]
+        parent_time = t[parent]
+        parent_s = s[parent]
+        parent_v = v[parent]
+        plt.plot([child_time,parent_time],[child_v, parent_v])
+    plt.show()
+
+
+if __name__=="__main__":
+    # paint_tree()
