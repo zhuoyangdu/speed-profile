@@ -9,7 +9,9 @@
 namespace planning{
 class Obstacles{
 public:
-    Obstacles(const planning::ObstacleMap& obstacle_map);
+    Obstacles();
+
+    void SetObstacles(const planning::ObstacleMap& obstacle_map);
 
 
 private:

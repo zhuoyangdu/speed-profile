@@ -102,6 +102,7 @@ void PlanningNode::GetGeometryPath(){
     double path_length;
     //Spline::fitCurve();
     Spline::fitCurve(xs, ys, &curve_x_, &curve_y_, &path_length);
+    
 }
 
 } // namespace planning
