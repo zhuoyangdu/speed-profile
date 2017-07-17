@@ -133,10 +133,10 @@ include_directories(
 
 ## Declare a C++ executable
 add_executable(planning_node
-               src/rrt-cpp/planning_node.cpp
-               src/rrt-cpp/rrt.cpp
-               src/rrt-cpp/spline.cpp
-               src/rrt-cpp/obstacles.cpp)
+               src/rrt/planning_node.cpp
+               src/rrt/rrt.cpp
+               src/rrt/spline.cpp
+               src/rrt/obstacles.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
