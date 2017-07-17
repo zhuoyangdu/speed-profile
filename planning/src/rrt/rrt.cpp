@@ -50,9 +50,6 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     first_node.print_node();
     tree_ = {first_node};
 
-    cout << "test:" << endl;
-    PrintNodes(tree_);
-
     int n_sample = 0;
     int n_feasible = 0;
     int n_path = 0;
@@ -69,7 +66,6 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
         bool node_valid;
         Node new_node(-1,-1,-1);
         Extend(sample, &new_node, &node_valid);
-        cout << endl;
         // sample.print_node();
 
         if(node_valid){
@@ -105,16 +101,16 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
         return;
     }
 
-    std::cout << "sample:"<<endl;
-    sample.print_node();
-    std::cout << "nearest_node:" << endl;
-    nearest_node.print_node();
+    // std::cout << "sample:"<<endl;
+    // sample.print_node();
+    // std::cout << "nearest_node:" << endl;
+    // nearest_node.print_node();
 
     // Steer to get new node.
     Steer(sample, nearest_node, new_node);
 
-    std::cout << "new node:" << endl;
-    new_node->print_node();
+    // std::cout << "new node:" << endl;
+    // new_node->print_node();
 
     bool vertex_feasible = VertexFeasible(nearest_node, *new_node);
     if(vertex_feasible){
@@ -129,7 +125,6 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
         // PrintNodes(near_region);
 
         for(int i = 0; i < near_region.size(); i++){
-            cout << "test!" << endl;
             Node near_node = near_region[i];
             vertex_feasible = VertexFeasible(near_node, *new_node);
             if(vertex_feasible){
@@ -139,8 +134,8 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
                 // cout << "weighting near:" << WeightingCost(cost_near) << endl;
                 // cout << "weighting min:" << WeightingCost(cost_min) << endl;
                 if(WeightingCost(cost_near) < WeightingCost(cost_min)){
-                    PrintCost(cost_min);
-                    PrintCost(cost_near);
+                    // PrintCost(cost_min);
+                    // PrintCost(cost_near);
                     cost_min = cost_near;
                     min_node = near_node;
                 }
@@ -150,8 +145,8 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
         new_node->self_id = tree_.size();
         new_node->velocity = ComputeVelocity(min_node, *new_node);
         new_node->cost = cost_min;
-        cout << "Add a new node to the tree." << endl;
-        new_node->print_node();
+        // cout << "Add a new node to the tree." << endl;
+        // new_node->print_node();
         tree_.push_back(*new_node);
 
         near_region = GetUpperRegion(*new_node);
