@@ -4,17 +4,21 @@ While the sumo config file changes, use the following command to generate the .n
 ```
 netconvert -c crossing.netcfg
 ```
-
-To run the project:
+To run planning node:
 ```
-    source devel/setup.bash
-    python src/runSim.py
-    python src/pathPlan.py
+source devel/setup.bash
+roslaunch planning planning_node.launch
 ```
 
-The config file of planning is src/rrt/constants.py.
+To run simulation node:
+```
+source devel/setup.bash
+python planning/src/runSim.py
+```
+or add -g after runSim.py to open the visualization of sumo.
 
-If you want to test the running time of each function:
+
+For python, if you want to test the running time of each function:
 ```
 python -m cProfile -s cumulative *.py
 ```
