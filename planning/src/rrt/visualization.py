@@ -79,5 +79,5 @@ def paint_tree():
     plt.show()
 
 
-if __name__=="__main__":
+#if __name__=="__main__":
     # paint_tree()

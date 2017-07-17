@@ -13,3 +13,8 @@ To run the project:
 ```
 
 The config file of planning is src/rrt/constants.py.
+
+If you want to test the running time of each function:
+```
+python -m cProfile -s cumulative *.py
+```

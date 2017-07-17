@@ -12,8 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
+ADD_DEFINITIONS(-std=c++11)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -131,16 +132,20 @@ include_directories(
 # add_dependencies(planning ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(planning_node src/planning_node.cpp)
+add_executable(planning_node
+               src/rrt-cpp/planning_node.cpp
+               src/rrt-cpp/rrt.cpp
+               src/rrt-cpp/spline.cpp
+               src/rrt-cpp/obstacles.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(planning_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(planning_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(planning_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(planning_node
+   ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##

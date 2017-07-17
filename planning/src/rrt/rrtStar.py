@@ -18,6 +18,8 @@ from planning.msg import DynamicObstacle
 from planning.msg import ObstacleMap
 
 obstacles = []
+TIME_NEAR = 0
+N_NEAR = 0
 
 class Tree(object):
     def __init__(self, t0, s0, v0):
@@ -32,25 +34,37 @@ class Tree(object):
     def add_node(self, node):
         self.nodes.append(node)
 
+    @profile
     def nearest(self, node):
-        dist = []
-        for tmp_node in self.nodes:
-            delta_s = node.distance - tmp_node.distance
-            delta_t = node.time - tmp_node.time
+        t0 = time.clock()
+        tree_size = self.get_tree_size()
+        dist = [0] * tree_size
+        node_distance = node.distance
+        node_time = node.time
+        for i in range(0, tree_size):
+            tmp_node = self.nodes[i]
+            delta_s = node_distance - tmp_node.distance
+            delta_t = node_time - tmp_node.time
             #print "delta_s:", delta_s," delta_t:", delta_t
             if delta_s<=0 or delta_t <=0:
-                dist.append(float("Inf"))
+                dist[i] = 10000#float("Inf")
             else:
                 vel = delta_s / delta_t
                 acc = (tmp_node.velocity - vel) / delta_t
                 if vel > MAX_VEL or acc > MAX_ACC:
                     # print "velocity or acceleration is too large:", vel, acc
-                    dist.append(float("Inf"))
+                    dist[i] = 10000#float("Inf")
                 else:
-                    dist.append(math.sqrt(math.pow(delta_s/S_MAX,2)+math.pow(delta_t/T_MAX,2)))
+                    dist[i] = math.sqrt(math.pow(delta_s/S_MAX,2)+math.pow(delta_t/T_MAX,2))
         nearest_index = dist.index(min(dist))
 
-        min_dist = min(dist)
+        min_dist = dist[nearest_index]
+
+        global TIME_NEAR
+        global N_NEAR
+        TIME_NEAR += time.clock() - t0
+        N_NEAR += 1
+
         if min_dist == float("Inf"):
             #print "[invalid sample] There isn't any node meeting the requirement."
             return None
@@ -282,7 +296,8 @@ class Planning(object):
                         path_min_cost = path
                     N_path = N_path + 1
                     print "Found", N_path, "paths."
-                    if N_path > 2:
+                    if N_path > 0:
+                        print "sample numbers:", i
                         self.tree.record_tree()
                         break
             #print ""
@@ -322,4 +337,5 @@ if __name__=="__main__":
     planning = Planning(localize, obstacle_map)
     planning.generate_trajectory()
     print "time passed:", time.clock() - t0
-
+    print "time near:", TIME_NEAR
+    print "n near:", N_NEAR
