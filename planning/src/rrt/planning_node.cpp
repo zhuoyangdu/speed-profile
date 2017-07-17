@@ -3,6 +3,9 @@
 namespace planning{
 
 PlanningNode::PlanningNode(const ros::NodeHandle& nh){
+
+    ros::param::get("~single_test", single_test_);
+
     GetGeometryPath();
 
     rrt_ptr_ = std::move(std::unique_ptr<RRT> (new RRT));
@@ -19,7 +22,7 @@ void PlanningNode::Start(){
         &PlanningNode::ObstacleCallback, this);
     ros::Rate loop_rate(rate_);
 
-    if(!single_test){
+    if(!single_test_){
         while(ros::ok()) {
             ros::spinOnce();
             cout << "localize_ready:" << localize_ready_ << ", obstacle_ready:" << obstacle_ready_ << endl;

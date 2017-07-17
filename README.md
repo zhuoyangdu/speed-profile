@@ -17,6 +17,7 @@ python planning/src/runSim.py
 ```
 or add -g after runSim.py to open the visualization of sumo.
 
+If you only want to run the planning node for single test and debug, set the param single_test true.
 
 For python, if you want to test the running time of each function:
 ```

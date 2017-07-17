@@ -29,7 +29,7 @@ private:
     ros::Subscriber sub_vehicle_state_;
     ros::Subscriber sub_obstacle_;
 
-    bool single_test = false;
+    bool single_test_ = true;
     double rate_ = 1;
 
     bool obstacle_ready_ = false;

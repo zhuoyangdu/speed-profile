@@ -1,3 +1,4 @@
+single_test: False
 rrt/max_failed_attemptes : 50000
 rrt/t_max : 5
 rrt/s_max : 60
