@@ -52,17 +52,17 @@ double Obstacles::RiskAssessment(const std::deque<Node>& path,
             double obs_pos_x = obs.x + obs.velocity * path[i].time * sin(obs.theta);
             double obs_pos_y = obs.y + obs.velocity * path[i].time * cos(obs.theta);
             double ss = sqrt(pow(obs_pos_x-vehicle_x,2)+pow(obs_pos_y-vehicle_y,2));
-            cout << "ss:" << ss << endl;
+            // cout << "ss:" << ss << endl;
             dis.push_back(ss);
         }
         min_dis.push_back(*std::min_element(dis.begin(), dis.end()));
-        cout << "min_dis:" << *std::min_element(dis.begin(), dis.end()) << endl;
+        // cout << "min_dis:" << *std::min_element(dis.begin(), dis.end()) << endl;
     }
     double min_min_dis = *std::min_element(min_dis.begin(), min_dis.end());
-    cout << "min_min_dis:" << min_min_dis << endl;
+    // cout << "min_min_dis:" << min_min_dis << endl;
 
     double risk = NonlinearRisk(min_min_dis);
-    cout << "risk:" << risk << endl;
+    // cout << "risk:" << risk << endl;
 
     return risk;
 }

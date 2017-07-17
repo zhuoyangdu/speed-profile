@@ -1,4 +1,4 @@
-rrt/max_failed_attemptes : 10000
+rrt/max_failed_attemptes : 50000
 rrt/t_max : 5
 rrt/s_max : 60
 rrt/t_goal : 3
