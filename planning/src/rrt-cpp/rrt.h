@@ -60,6 +60,15 @@ private:
 
     std::vector<Node> GetUpperRegion(const Node& node);
 
+    double WeightingCost(std::vector<double>& cost);
+
+    void PrintNodes(std::vector<Node>& nodes);
+
+    void PrintNodes(std::deque<Node>& nodes);
+
+    void PrintCost(std::vector<double>& cost);
+
+    bool ReachingGoal(const Node& node);
 private:
 
     Obstacles obstacles;

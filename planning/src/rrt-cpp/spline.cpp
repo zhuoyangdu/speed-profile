@@ -485,8 +485,8 @@ void Spline::fitCurve(const std::vector<double>& xs,
         *length  += local_length;
         lengths.push_back(*length);
     }
-    std::cout << " len: " << lengths.size() << " xs: " <<
-        xs.size() << " ys: " << ys.size() << std::endl;
+    //std::cout << " len: " << lengths.size() << " xs: " <<
+    //    xs.size() << " ys: " << ys.size() << std::endl;
     curve_x->setPoints(lengths, xs);
     curve_y->setPoints(lengths, ys);
 }

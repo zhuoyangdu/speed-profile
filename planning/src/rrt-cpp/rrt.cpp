@@ -65,8 +65,22 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
         bool node_valid;
         Node new_node(-1,-1,-1);
         Extend(sample, &new_node, &node_valid);
-
+        cout << endl;
         // sample.print_node();
+
+        if(node_valid){
+            n_feasible = n_feasible + 1;
+            if(ReachingGoal(new_node)){
+                n_path = n_path + 1;
+                std::deque<Node> path = GetParentPath(new_node);
+                cout << "found " << n_path << "paths" << endl;
+                PrintNodes(path);
+                if(n_path > 5){
+                    break;
+                }
+            }
+
+        }
     }
     ends=clock();
     cout << "elapsed time:" << double(ends-start)/CLOCKS_PER_SEC << endl;
@@ -78,21 +92,91 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
     // Find nearest node.
     Node nearest_node;
     GetNearestNode(sample, &nearest_node, node_valid);
-    if(!*node_valid) return;
+    if(!*node_valid){
+        std::cout << "invalid sample" << endl;
+        return;
+    }
+
+    std::cout << "sample:"<<endl;
+    sample.print_node();
+    std::cout << "near_node:" << endl;
+    nearest_node.print_node();
 
     // Steer to get new node.
     Steer(sample, nearest_node, new_node);
+
+    std::cout << "new node:" << endl;
+    new_node->print_node();
 
     bool vertex_feasible = VertexFeasible(nearest_node, *new_node);
     if(vertex_feasible){
         *node_valid = true;
         Node min_node = nearest_node;
         std::vector<double> cost_min = GetNodeCost(min_node, *new_node);
+        cout << "cost of nearest node:" << endl;
+        PrintCost(cost_min);
+
         std::vector<Node> near_region = GetLowerRegion(*new_node);
+        cout << "near lower region:" << endl;
+        PrintNodes(near_region);
+
+        for(int i = 0; i < near_region.size(); i++){
+            cout << "test!" << endl;
+            Node near_node = near_region[i];
+            vertex_feasible = VertexFeasible(near_node, *new_node);
+            if(vertex_feasible){
+                cout << "vertex_feasible" << endl;
+                std::vector<double> cost_near = GetNodeCost(near_node, *new_node);
+                cout << "cost_near:" << endl;
+                PrintCost(cost_near);
+                cout << "weighting near:" << WeightingCost(cost_near) << endl;
+                cout << "weighting min:" << WeightingCost(cost_min) << endl;
+                if(WeightingCost(cost_near) < WeightingCost(cost_min)){
+                    PrintCost(cost_min);
+                    PrintCost(cost_near);
+                    cost_min = cost_near;
+                    cout << "test" << endl;
+                    min_node = near_node;
+                    cout << "change parent node." << endl;
+                }
+            }
+        }
+        new_node->parent_id = min_node.self_id;
+        new_node->self_id = tree_.size();
+        new_node->velocity = ComputeVelocity(min_node, *new_node);
+        new_node->cost = cost_min;
+        cout << "Add a new node to the tree." << endl;
+        new_node->print_node();
+        tree_.push_back(*new_node);
+
+        near_region = GetUpperRegion(*new_node);
+        cout << "near upper region:" << endl;
+        PrintNodes(near_region);
+
+        for(int i = 0; i < near_region.size(); i++){
+            Node near_node = near_region[i];
+            vertex_feasible = VertexFeasible(*new_node, near_node);
+            if(vertex_feasible){
+                std::vector<double> cost_near = near_node.cost;
+                std::vector<double> cost_new = GetNodeCost(*new_node, near_node);
+                if(WeightingCost(cost_near) > WeightingCost(cost_new)){
+                    near_node.parent_id = new_node->self_id;
+                    near_node.velocity = ComputeVelocity(*new_node, near_node);
+                    near_node.cost = cost_new;
+                    tree_[near_node.self_id] = near_node;
+                    cout << "rewire tree." << endl;
+                }
+            }
+        }
     }else{
+        std::cout << "no feasible!" << endl;
         *node_valid = false;
         return;
     }
+}
+
+double RRT::WeightingCost(std::vector<double>& cost){
+    return kr_ * cost[0] + ks_ * cost[1] + kv_ * cost[2];
 }
 
 Node RRT::RandomSample(double s0){
@@ -202,10 +286,17 @@ std::deque<Node> RRT::GetParentPath(const Node& node){
 
 std::vector<double> RRT::GetNodeCost(const Node& parent_node, const Node& child_node){
     std::deque<Node> path = GetParentPath(parent_node);
+    std::cout << "path:" << endl;
     path.push_back(child_node);
+    for(int i = 0; i < path.size(); i++){
+        path[i].print_node();
+    }
+
     double risk = obstacles.RiskAssessment(path, curve_x_, curve_y_);
     double smoothness = GetNodeSmooth(parent_node, child_node);
     double e_vel = GetNodeVelError(parent_node, child_node);
+    std::vector<double> cost = {risk, smoothness, e_vel};
+    return cost;
 }
 
 double RRT::GetNodeSmooth(const Node& parent_node, const Node& child_node){
@@ -246,4 +337,30 @@ std::vector<Node> RRT::GetUpperRegion(const Node& node){
         }
     }
     return near_region;
+}
+
+void RRT::PrintNodes(std::vector<Node>& nodes){
+    cout << "size:" << nodes.size() << endl;
+    for(int i = 0; i < nodes.size(); i++){
+        nodes[i].print_node();
+    }
+}
+
+void RRT::PrintNodes(std::deque<Node>& nodes){
+    cout << "size:" << nodes.size() << endl;
+    for(int i = 0; i < nodes.size(); i++){
+        nodes[i].print_node();
+    }
+}
+
+void RRT::PrintCost(std::vector<double>& cost){
+    cout << "cost:" << "risk:" << cost[0] << ",smoothness:" << cost[1]
+        << ",vel error:" << cost[2] << endl;
+}
+
+bool RRT::ReachingGoal(const Node& node){
+    if(abs(node.time - t_goal_) < 0.3){
+        return true;
+    }
+    return false;
 }
