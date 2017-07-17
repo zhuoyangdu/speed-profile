@@ -3,11 +3,13 @@
 
 #include <random>
 #include <cmath>
+#include <deque>
 #include <iostream>
 #include <algorithm>
 #include <ros/ros.h>
 #include <time.h>
 
+#include "common.h"
 #include "spline.h"
 #include "obstacles.h"
 #include "planning/Pose.h"
@@ -16,31 +18,6 @@
 #include "planning/ObstacleMap.h"
 
 namespace planning{
-
-class Node{
-public:
-    Node(double t=-1, double dis=-1, int s_id=-1){
-        time = t;
-        distance = dis;
-        self_id = s_id;
-        velocity = 0;
-        cost = 0;
-        parent_id = 0;
-    }
-
-    void print_node(){
-        std::cout << "time:" << time << " distance:" << distance <<
-            " vel:" << velocity << " self_id:" << self_id <<
-            " parent_id:" << parent_id << " cost:" << cost << std::endl;
-    }
-public:
-    double time;
-    double distance;
-    double velocity;
-    double cost;
-    int self_id;
-    int parent_id;
-};
 
 class RRT{
 public:
@@ -69,6 +46,20 @@ private:
     double ComputeAcceleration(const Node& n1, const Node& n2);
 
     bool VertexFeasible(const Node& parent_node, const Node& child_node);
+
+
+    std::vector<double> GetNodeCost(const Node& parent_node, const Node& child_node);
+
+    std::deque<Node> GetParentPath(const Node& node);
+
+    double GetNodeSmooth(const Node& parent_node, const Node& child_node);
+
+    double GetNodeVelError(const Node& parent_node, const Node& child_node);
+
+    std::vector<Node> GetLowerRegion(const Node& node);
+
+    std::vector<Node> GetUpperRegion(const Node& node);
+
 private:
 
     Obstacles obstacles;

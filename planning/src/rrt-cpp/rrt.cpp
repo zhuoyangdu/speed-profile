@@ -84,6 +84,15 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
     Steer(sample, nearest_node, new_node);
 
     bool vertex_feasible = VertexFeasible(nearest_node, *new_node);
+    if(vertex_feasible){
+        *node_valid = true;
+        Node min_node = nearest_node;
+        std::vector<double> cost_min = GetNodeCost(min_node, *new_node);
+        std::vector<Node> near_region = GetLowerRegion(*new_node);
+    }else{
+        *node_valid = false;
+        return;
+    }
 }
 
 Node RRT::RandomSample(double s0){
@@ -173,4 +182,68 @@ bool RRT::VertexFeasible(const Node& parent_node, const Node& child_node){
     if(fabs(acc) > max_acc_){
         return false;
     }
+    bool collision_free = obstacles.CollisionFree(parent_node, child_node, curve_x_, curve_y_);
+    if(!collision_free){
+        return false;
+    }
+    return true;
+}
+
+std::deque<Node> RRT::GetParentPath(const Node& node){
+    Node child_node = node;
+    std::deque<Node> path = {child_node};
+    while(child_node.parent_id != -1){
+        Node parent_node = tree_[child_node.parent_id];
+        path.push_front(parent_node);
+        child_node = parent_node;
+    }
+    return path;
+}
+
+std::vector<double> RRT::GetNodeCost(const Node& parent_node, const Node& child_node){
+    std::deque<Node> path = GetParentPath(parent_node);
+    path.push_back(child_node);
+    double risk = obstacles.RiskAssessment(path, curve_x_, curve_y_);
+    double smoothness = GetNodeSmooth(parent_node, child_node);
+    double e_vel = GetNodeVelError(parent_node, child_node);
+}
+
+double RRT::GetNodeSmooth(const Node& parent_node, const Node& child_node){
+    double child_vel = ComputeVelocity(parent_node, child_node);
+    return fabs(parent_node.velocity - child_vel);
+}
+
+double RRT::GetNodeVelError(const Node& parent_node, const Node& child_node){
+    double child_vel = ComputeVelocity(parent_node, child_node);
+    return fabs(child_vel-v_goal_);
+}
+
+std::vector<Node> RRT::GetLowerRegion(const Node& node){
+    double min_time = node.time - lower_range_t_;
+    double min_distance = node.distance - lower_range_s_;
+    std::vector<Node> near_region;
+    for(int i = 0; i < tree_.size(); i++){
+        if(tree_[i].time < node.time
+            && tree_[i].time > min_time
+            && tree_[i].distance < node.distance
+            && tree_[i].distance > min_distance){
+            near_region.push_back(tree_[i]);
+        }
+    }
+    return near_region;
+}
+
+std::vector<Node> RRT::GetUpperRegion(const Node& node){
+    double max_time = node.time + upper_range_t_;
+    double max_distance = node.time + upper_range_s_;
+    std::vector<Node> near_region;
+    for(int i = 0; i < tree_.size(); i++){
+        if(tree_[i].time > node.time
+            && tree_[i].time < max_time
+            && tree_[i].distance > node.distance
+            && tree_[i].distance < max_distance){
+            near_region.push_back(tree_[i]);
+        }
+    }
+    return near_region;
 }
