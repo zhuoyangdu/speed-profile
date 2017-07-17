@@ -69,6 +69,13 @@ private:
     void PrintCost(std::vector<double>& cost);
 
     bool ReachingGoal(const Node& node);
+
+    std::vector<double> GetPathCost(const std::deque<Node>& path);
+
+    double GetPathSmoothness(const std::deque<Node>& path);
+
+    double GetPathVelError(const std::deque<Node>& path);
+
 private:
 
     Obstacles obstacles;

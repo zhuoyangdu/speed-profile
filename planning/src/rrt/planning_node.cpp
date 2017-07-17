@@ -21,6 +21,8 @@ void PlanningNode::Start(){
 
     if(!single_test){
         while(ros::ok()) {
+            ros::spinOnce();
+            cout << "localize_ready:" << localize_ready_ << ", obstacle_ready:" << obstacle_ready_ << endl;
             if(localize_ready_ && obstacle_ready_) {
                 planning::Trajectory trajectory;
                 rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
@@ -52,13 +54,16 @@ void PlanningNode::Start(){
                                      curve_x_, curve_y_, &trajectory);
     }
 }
+
 void PlanningNode::VehicleStateCallback(const planning::Pose& localize){
     vehicle_state_ = localize;
+    cout << "heard localize" << endl;
     localize_ready_ = true;
 }
 
 void PlanningNode::ObstacleCallback(const planning::ObstacleMap& obstacle_map){
     obstacle_map_ = obstacle_map;
+    cout << "heard obstacle" << endl;
     obstacle_ready_ = true;
 }
 

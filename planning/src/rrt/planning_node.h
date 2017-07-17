@@ -29,8 +29,8 @@ private:
     ros::Subscriber sub_vehicle_state_;
     ros::Subscriber sub_obstacle_;
 
-    bool single_test = true;
-    double rate_ = 10;
+    bool single_test = false;
+    double rate_ = 1;
 
     bool obstacle_ready_ = false;
     bool localize_ready_ = false;

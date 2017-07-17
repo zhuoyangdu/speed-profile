@@ -63,8 +63,19 @@ def get_localize():
     localize.length = traci.vehicle.getDistance(self_veh.get_id())
     return localize
 
-def do_step():
+def do_step(trajectory, trajectory_ready):
     print traci.simulation.getCurrentTime()
+    tc = float(traci.simulation.getCurrentTime()/1000.0)
+
+    if trajectory_ready:
+        index = 0
+        for k in range(0, len(trajectory.poses)):
+            if tc < trajectory.poses[k].timestamp:
+                index = k
+                break
+        vel = trajectory.poses[index].velocity
+        print "tc:", tc, "ref_vel:", vel
+        traci.vehicle.setSpeed(self_veh.get_id(), vel)
     traci.simulationStep()
 
 def get_obstacles():

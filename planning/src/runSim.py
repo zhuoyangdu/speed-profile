@@ -12,9 +12,15 @@ from planning.msg import DynamicObstacle
 from planning.msg import ObstacleMap
 
 CAR_WIDTH = 3
+trajectory = Trajectory()
+trajectory_ready = False
 
-def callback_trajectory():
-    print "callback traj:", traj
+def callback_trajectory(msg):
+    global trajectory
+    trajectory = msg
+    global trajectory_ready
+    trajectory_ready = True
+    print "callback traj:", trajectory
 
 def init_sim():
     vehicleControl.init()
@@ -68,10 +74,10 @@ if __name__=="__main__":
     rospy.Subscriber("/planning/trajectory", Trajectory, callback_trajectory)
     pub_localize = rospy.Publisher("/simulation/localize", Pose, queue_size=10)
     pub_obstacle = rospy.Publisher("/simulation/obstacles", ObstacleMap, queue_size = 10)
-    rate = rospy.Rate(5)
+    rate = rospy.Rate(10)
 
     while not rospy.is_shutdown():
-        vehicleControl.do_step()
+        vehicleControl.do_step(trajectory, trajectory_ready)
         localize = vehicleControl.get_localize()
         obs_map = vehicleControl.get_obstacles()
         # print_map(localize, obs_map)

@@ -54,6 +54,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     int n_feasible = 0;
     int n_path = 0;
     double min_cost = 10000;
+    std::deque<Node> min_path;
 
     clock_t start,ends;
     start=clock();
@@ -73,9 +74,18 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
             if(ReachingGoal(new_node)){
                 n_path = n_path + 1;
                 std::deque<Node> path = GetParentPath(new_node);
-                cout << "found " << n_path << "paths" << endl;
-                PrintNodes(path);
+                std::vector<double> path_cost = GetPathCost(path);
+                double cost_sum = path_cost[0] + path_cost[1] + path_cost[2];
+                if(cost_sum < min_cost){
+                    min_path = path;
+                    min_cost = cost_sum;
+                }
+                // cout << "found " << n_path << "paths" << endl;
+                // PrintNodes(path);
                 if(n_path > 5){
+                    cout << "The final path is: " << endl;
+                    PrintNodes(min_path);
+                    cout << "The cost of the final path is:" << min_cost << endl;
                     break;
                 }
             }
@@ -84,12 +94,26 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     }
 
     cout << "total attemps:" << n_sample << ", feasible sample:" << n_feasible << endl;
-    cout << "tree:" << endl;
-    PrintNodes(tree_);
-
+    // cout << "tree:" << endl;
+    // PrintNodes(tree_);
     ends=clock();
     cout << "elapsed time:" << double(ends-start)/CLOCKS_PER_SEC << endl;
 
+    if(n_path > 0){
+        std::vector<planning::Pose> poses;
+        for(int i = 0; i < min_path.size(); i++){
+            planning::Pose pose;
+            pose.timestamp = min_path[i].time + vehicle_state.timestamp;
+            pose.velocity = min_path[i].velocity;
+            pose.length = min_path[i].distance;
+            pose.x = curve_x_(pose.length);
+            pose.y = curve_y_(pose.length);
+            poses.push_back(pose);
+        }
+        trajectory->poses = poses;
+    }else{
+        ROS_ERROR("No path found.");
+    }
     return;
 }
 
@@ -282,6 +306,32 @@ std::deque<Node> RRT::GetParentPath(const Node& node){
         child_node = parent_node;
     }
     return path;
+}
+
+std::vector<double> RRT::GetPathCost(const std::deque<Node>& path){
+    double risk = obstacles.RiskAssessment(path, curve_x_, curve_y_);
+    double smoothness = GetPathSmoothness(path);
+    double e_vel = GetPathVelError(path);
+    std::vector<double> cost = {risk, smoothness, e_vel};
+    return cost;
+}
+
+double RRT::GetPathSmoothness(const std::deque<Node>& path){
+    double sum_acc = 0;
+    for(int i = 1; i < path.size(); i++){
+        double acc = (path[i].velocity - path[i-1].velocity) /
+                     (path[i].time - path[i-1].time);
+        sum_acc = sum_acc + acc;
+    }
+    return sum_acc;
+}
+
+double RRT::GetPathVelError(const std::deque<Node>& path){
+    double ev = 0;
+    for(int i = 0; i < path.size(); i++){
+        ev = ev + fabs(path[i].velocity - v_goal_);
+    }
+    return ev;
 }
 
 std::vector<double> RRT::GetNodeCost(const Node& parent_node, const Node& child_node){
