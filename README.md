@@ -10,12 +10,18 @@ source devel/setup.bash
 roslaunch planning planning_node.launch
 ```
 
+Before you run the simulation node, you should set the environment varaible SOMO_HOME fist, like:
+```
+export SUMO_HOME=/home/robot/Documents/sumo-0.28.0/
+```
+
 To run simulation node:
 ```
 source devel/setup.bash
 python planning/src/runSim.py
 ```
 or add -g after runSim.py to open the visualization of sumo.
+
 
 If you only want to run the planning node for single test and debug, set the param single_test true.
 
