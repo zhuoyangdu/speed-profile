@@ -5,6 +5,7 @@ namespace planning{
 PlanningNode::PlanningNode(const ros::NodeHandle& nh){
 
     ros::param::get("~single_test", single_test_);
+    ros::param::get("~planning_path", planning_path_);
 
     GetGeometryPath();
 
@@ -84,7 +85,8 @@ void SplitString(const std::string& s, const std::string& c,
 void PlanningNode::GetGeometryPath(){
     std::vector<double> xs,ys;
     std::string line;
-    std::ifstream file("/home/parallels/workspace/catkin_ws/planning/data/RoadXY.txt");
+    std::string file_name = planning_path_ + "/data/RoadXY.txt";
+    std::ifstream file(file_name);
     if(file.is_open()){
         ROS_INFO("reading road config.");
         int i;

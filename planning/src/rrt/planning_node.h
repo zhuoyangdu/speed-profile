@@ -43,6 +43,8 @@ private:
 
     Spline curve_x_;
     Spline curve_y_;
+
+    std::string planning_path_;
     };
 }
 

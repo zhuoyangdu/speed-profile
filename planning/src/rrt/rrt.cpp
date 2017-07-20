@@ -26,11 +26,14 @@ RRT::RRT(){
     ros::param::get("~rrt/danger_distance", danger_distance_);
     ros::param::get("~rrt/safe_distance", safe_distance_);
     ros::param::get("~rrt/car_width", car_width_);
+    ros::param::get("~planning_path", planning_path_);
+}
 
+void RRT::newFile(){
     time_t t = std::time(NULL);
     struct tm * now = std::localtime(&t);
 
-    file_name_ = "/home/parallels/workspace/catkin_ws/planning/log/log_tree_"
+    file_name_ = planning_path_ + "/log/log_tree_"
                  + int2string(now->tm_year + 1900 - 2000)
                  + '_' + int2string(now->tm_mon + 1)
                  + '_' + int2string(now->tm_mday)
@@ -49,6 +52,8 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                              const Spline& curve_x,
                              const Spline& curve_y,
                              planning::Trajectory* trajectory) {
+    newFile();
+
     // Initialize path.
     curve_x_ = curve_x;
     curve_y_ = curve_y;

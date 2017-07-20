@@ -78,6 +78,8 @@ private:
     double GetPathVelError(const std::deque<Node>& path);
 
     std::string int2string(int value);
+
+    void newFile();
 private:
 
     Obstacles obstacles;
@@ -107,6 +109,7 @@ private:
     double safe_distance_;
     double car_width_;
 
+    std::string planning_path_;
     std::string file_name_;
     std::ofstream out_file_;
 
