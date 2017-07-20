@@ -53,6 +53,18 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                              const Spline& curve_y,
                              planning::Trajectory* trajectory) {
     newFile();
+    // record.
+    std::ofstream out_file_(file_name_.c_str());
+    for (int i = 0; i < obstacle_map.dynamic_obstacles.size(); i++){
+        planning::DynamicObstacle obs = obstacle_map.dynamic_obstacles[i];
+        out_file_ << "obstacle\t" << obs.timestamp << "\t" <<
+            obs.id << "\t" << obs.x << "\t" << obs.y << "\t"
+            <<obs.theta << "\t" << obs.velocity << "\n";
+    }
+    out_file_ << "vehicle_state\t" << vehicle_state.timestamp << "\t"
+        << vehicle_state.x << "\t" << vehicle_state.y << "\t"
+        << vehicle_state.theta << "\t" << vehicle_state.velocity << "\n";
+    out_file_.close();
 
     // Initialize path.
     curve_x_ = curve_x;
