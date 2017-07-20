@@ -42,7 +42,7 @@ def init():
     if options.gui:
         sumoExe = 'sumo-gui'
     sumoBinary = checkBinary(sumoExe)
-    traci.start([sumoBinary, "-c", "../data/crossing.sumocfg"])
+    traci.start([sumoBinary, "-c", "/home/parallels/workspace/catkin_ws/planning/data/crossing.sumocfg"])
     print "Traci initialized."
 
 def destroy():
@@ -51,7 +51,20 @@ def destroy():
 
 def init_vehicle():
     traci.vehicle.addFull(self_veh.get_id(), INIT_ROUTE,departPos=INIT_POS,departSpeed=INIT_SPEED)
+    traci.vehicle.setSpeedMode(self_veh.get_id(), 0)
     traci.vehicle.setSpeed(self_veh.get_id(), float(INIT_SPEED))
+
+    # init obstacles:
+    #traci.vehicle.addFull("obs1", "route03", departPos="480", departSpeed="9")
+    #traci.vehicle.setSpeed("obs1", 9)
+
+    traci.simulationStep()
+
+    for veh in traci.vehicle.getIDList():
+        print veh
+        if veh!= self_veh.get_id():
+            traci.vehicle.setSpeedMode(veh, 0)
+            traci.vehicle.setSpeed(veh, 5)
     print "Self vehicle initialized."
 
 def get_localize():
@@ -74,7 +87,7 @@ def do_step(trajectory, trajectory_ready):
                 index = k
                 break
         vel = trajectory.poses[index].velocity
-        print "tc:", tc, "ref_vel:", vel
+        print "tc:", tc, "ref_vel:", vel, "current velocity:", traci.vehicle.getSpeed(self_veh.get_id())
         traci.vehicle.setSpeed(self_veh.get_id(), vel)
     traci.simulationStep()
 

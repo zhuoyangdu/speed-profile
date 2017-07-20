@@ -81,6 +81,8 @@ if __name__=="__main__":
         localize = vehicleControl.get_localize()
         obs_map = vehicleControl.get_obstacles()
         # print_map(localize, obs_map)
+        print localize
+        print obs_map
         pub_localize.publish(localize)
         pub_obstacle.publish(obs_map)
         rate.sleep()

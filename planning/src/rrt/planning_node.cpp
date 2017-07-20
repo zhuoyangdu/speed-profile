@@ -25,7 +25,6 @@ void PlanningNode::Start(){
     if(!single_test_){
         while(ros::ok()) {
             ros::spinOnce();
-            cout << "localize_ready:" << localize_ready_ << ", obstacle_ready:" << obstacle_ready_ << endl;
             if(localize_ready_ && obstacle_ready_) {
                 planning::Trajectory trajectory;
                 rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
@@ -34,20 +33,20 @@ void PlanningNode::Start(){
             }
             loop_rate.sleep();
         }
-    } else{
-        vehicle_state_.timestamp = 54000.4;
+    } else {
+        vehicle_state_.timestamp = 54000.2;
         vehicle_state_.x = 502.55;
-        vehicle_state_.y = 481.2;
+        vehicle_state_.y = 480.6;
         vehicle_state_.theta = 0;
-        vehicle_state_.length = 0;
-        vehicle_state_.velocity = 4;
+        vehicle_state_.length = 0.6;
+        vehicle_state_.velocity = 6;
 
         DynamicObstacle obs;
-        obs.timestamp = 54000.4;
+        obs.timestamp = 54000.2;
         obs.id = "veh2";
-        obs.x = 519.9628;
+        obs.x = 519.5;
         obs.y = 502.55;
-        obs.theta = 270.0/180* M_PI;
+        obs.theta = 4.712;
         obs.velocity = 8;
         std::vector<DynamicObstacle> dynamic_obstacles;
         dynamic_obstacles.push_back(obs);
@@ -60,13 +59,11 @@ void PlanningNode::Start(){
 
 void PlanningNode::VehicleStateCallback(const planning::Pose& localize){
     vehicle_state_ = localize;
-    cout << "heard localize" << endl;
     localize_ready_ = true;
 }
 
 void PlanningNode::ObstacleCallback(const planning::ObstacleMap& obstacle_map){
     obstacle_map_ = obstacle_map;
-    cout << "heard obstacle" << endl;
     obstacle_ready_ = true;
 }
 

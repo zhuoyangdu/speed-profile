@@ -26,6 +26,22 @@ RRT::RRT(){
     ros::param::get("~rrt/danger_distance", danger_distance_);
     ros::param::get("~rrt/safe_distance", safe_distance_);
     ros::param::get("~rrt/car_width", car_width_);
+
+    time_t t = std::time(NULL);
+    struct tm * now = std::localtime(&t);
+
+    file_name_ = "/home/parallels/workspace/catkin_ws/planning/log/log_tree_"
+                 + int2string(now->tm_year + 1900 - 2000)
+                 + '_' + int2string(now->tm_mon + 1)
+                 + '_' + int2string(now->tm_mday)
+                 + '_' + int2string(now->tm_hour)
+                 + '_' + int2string(now->tm_min)
+                 + '_' + int2string(now->tm_sec);
+    std::ofstream out_file_(file_name_.c_str());
+    if (!out_file_) {
+        ROS_INFO("no file!");
+    }
+    out_file_.close();
 }
 
 void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
@@ -54,6 +70,9 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     int n_feasible = 0;
     int n_path = 0;
     double min_cost = 10000;
+    un_vel = 0;
+    un_acc = 0;
+    un_collision = 0;
     std::deque<Node> min_path;
 
     clock_t start,ends;
@@ -89,11 +108,13 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                     break;
                 }
             }
-
         }
     }
 
     cout << "total attemps:" << n_sample << ", feasible sample:" << n_feasible << endl;
+
+    cout << "unvel:" << un_vel << ", unacc:" << un_acc << ", un_col:" << un_collision << endl;
+
     // cout << "tree:" << endl;
     // PrintNodes(tree_);
     ends=clock();
@@ -125,41 +146,24 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
         return;
     }
 
-    // std::cout << "sample:"<<endl;
-    // sample.print_node();
-    // std::cout << "nearest_node:" << endl;
-    // nearest_node.print_node();
-
     // Steer to get new node.
     Steer(sample, nearest_node, new_node);
-
-    // std::cout << "new node:" << endl;
-    // new_node->print_node();
 
     bool vertex_feasible = VertexFeasible(nearest_node, *new_node);
     if(vertex_feasible){
         *node_valid = true;
         Node min_node = nearest_node;
         std::vector<double> cost_min = GetNodeCost(min_node, *new_node);
-        // cout << "cost of nearest node:" << endl;
-        // PrintCost(cost_min);
 
         std::vector<Node> near_region = GetLowerRegion(*new_node);
-        // cout << "near lower region:" << endl;
-        // PrintNodes(near_region);
 
         for(int i = 0; i < near_region.size(); i++){
             Node near_node = near_region[i];
             vertex_feasible = VertexFeasible(near_node, *new_node);
             if(vertex_feasible){
                 std::vector<double> cost_near = GetNodeCost(near_node, *new_node);
-                // cout << "cost_near:" << endl;
-                // PrintCost(cost_near);
-                // cout << "weighting near:" << WeightingCost(cost_near) << endl;
-                // cout << "weighting min:" << WeightingCost(cost_min) << endl;
+
                 if(WeightingCost(cost_near) < WeightingCost(cost_min)){
-                    // PrintCost(cost_min);
-                    // PrintCost(cost_near);
                     cost_min = cost_near;
                     min_node = near_node;
                 }
@@ -169,13 +173,10 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
         new_node->self_id = tree_.size();
         new_node->velocity = ComputeVelocity(min_node, *new_node);
         new_node->cost = cost_min;
-        // cout << "Add a new node to the tree." << endl;
-        // new_node->print_node();
+
         tree_.push_back(*new_node);
 
         near_region = GetUpperRegion(*new_node);
-        // cout << "near upper region:" << endl;
-        // PrintNodes(near_region);
 
         for(int i = 0; i < near_region.size(); i++){
             Node near_node = near_region[i];
@@ -205,6 +206,7 @@ double RRT::WeightingCost(std::vector<double>& cost){
 
 Node RRT::RandomSample(double s0){
     double sample_t = (double) rand()/RAND_MAX * t_max_;
+    double sample_s_range = s_max_ < t_max_ * max_vel_ ? s_max_ : t_max_ * max_vel_;
     double sample_s = (double) rand()/RAND_MAX * s_max_ + s0;
     Node sample(sample_t, sample_s);
     return sample;
@@ -284,14 +286,17 @@ bool RRT::VertexFeasible(const Node& parent_node, const Node& child_node){
     }
     double vel = ComputeVelocity(parent_node, child_node);
     if(vel > max_vel_){
+        un_vel += 1;
         return false;
     }
     double acc = ComputeAcceleration(parent_node, child_node);
     if(fabs(acc) > max_acc_){
+        un_acc += 1;
         return false;
     }
     bool collision_free = obstacles.CollisionFree(parent_node, child_node, curve_x_, curve_y_);
     if(!collision_free){
+        un_collision += 1;
         return false;
     }
     return true;
@@ -408,4 +413,14 @@ bool RRT::ReachingGoal(const Node& node){
         return true;
     }
     return false;
+}
+
+std::string RRT::int2string(int value) {
+    std::stringstream ss;
+    if (value < 10) {
+        ss << 0 << value;
+    } else {
+        ss << value;
+    }
+    return ss.str();
 }

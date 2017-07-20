@@ -5,3 +5,5 @@ INIT_ROUTE = "route02"
 
 OBSTACLE_RANGE = 50
 CAR_WIDTH = 3
+
+time_step = 0.1

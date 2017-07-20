@@ -1,5 +1,5 @@
-single_test: False
-rrt/max_failed_attemptes : 50000
+single_test: True
+rrt/max_failed_attemptes : 100000
 rrt/t_max : 5
 rrt/s_max : 60
 rrt/t_goal : 3

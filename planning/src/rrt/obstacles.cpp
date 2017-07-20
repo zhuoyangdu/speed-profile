@@ -42,6 +42,9 @@ double Obstacles::NonlinearRisk(double input){
 
 double Obstacles::RiskAssessment(const std::deque<Node>& path,
                                  const Spline& curve_x, const Spline& curve_y){
+    if (obstacles_.empty()){
+        return 0;
+    }
     std::vector<double> min_dis;
     for(int i = 0; i < obstacles_.size(); i++){
         planning::DynamicObstacle obs = obstacles_[i];

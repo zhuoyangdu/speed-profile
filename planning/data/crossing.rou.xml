@@ -2,7 +2,7 @@
 <routes>
   <vType accel="3.0" decel="6.0" id="CarA" length="5.0" minGap="2.5" maxSpeed="20.0" sigma="0.5" guiShape="evehicle" />
   <vType accel="2.0" decel="6.0" id="CarB" length="7.5" minGap="2.5" maxSpeed="15.0" sigma="0.5" guiShape="evehicle" />
-  <vType accel="1.0" decel="5.0" id="CarC" length="5.0" minGap="2.5" maxSpeed="10.0" sigma="0.5" guiShape="evehicle" />
+  <vType accel="1.0" decel="5.0" id="CarC" length="5.0" minGap="2.5" maxSpeed="15.0" sigma="0.5" guiShape="evehicle"  />
 
   <route id="route01" edges="L1 L3"/>
   <route id="route02" edges="L7 L2"/>
@@ -11,6 +11,7 @@
   <vehicle depart="54000" id="veh0" route="route01" type="CarA" color="1,0,0" /> 
   <vehicle depart="54000" id="veh5" route="route02" type="CarA" color="1,0,0" /> 
   <vehicle depart="54000" id="veh1" route="route03" type="CarB" color="1,0,0"/> 
-  <vehicle depart="54000" id="veh2" route="route03" type="CarC" color="1,0,0" departPos="480"/> 
+  <vehicle depart="54000" departSpeed="4" id="veh2" route="route03" type="CarC" color="1,0,0" departPos="480"/>
+
   <vehicle depart="54000" id="veh3" route="route03" type="CarA" color="1,0,0" departPos="0"/> 
 </routes>

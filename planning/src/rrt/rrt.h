@@ -4,6 +4,7 @@
 #include <random>
 #include <cmath>
 #include <deque>
+#include <fstream>
 #include <iostream>
 #include <algorithm>
 #include <ros/ros.h>
@@ -76,6 +77,7 @@ private:
 
     double GetPathVelError(const std::deque<Node>& path);
 
+    std::string int2string(int value);
 private:
 
     Obstacles obstacles;
@@ -104,6 +106,14 @@ private:
     double danger_distance_;
     double safe_distance_;
     double car_width_;
+
+    std::string file_name_;
+    std::ofstream out_file_;
+
+    int un_vel = 0;
+    int un_acc = 0;
+    int un_collision = 0;
+
 };
 
 }
