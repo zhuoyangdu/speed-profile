@@ -5,7 +5,7 @@ rrt/s_max : 60
 rrt/t_goal : 3
 rrt/s_goal : 20
 rrt/v_goal : 10
-rrt/dt : 0.2
+rrt/dt : 0.1
 rrt/max_acc : 4
 rrt/max_vel : 12
 rrt/kr : 1

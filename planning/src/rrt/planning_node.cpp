@@ -40,7 +40,7 @@ void PlanningNode::Start(){
         vehicle_state_.y = 480.6;
         vehicle_state_.theta = 0;
         vehicle_state_.length = 0.6;
-        vehicle_state_.velocity = 6;
+        vehicle_state_.velocity = 4;
 
         DynamicObstacle obs;
         obs.timestamp = 54000.2;

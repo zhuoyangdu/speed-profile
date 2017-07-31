@@ -61,11 +61,13 @@ def init_vehicle():
     traci.simulationStep()
 
     for veh in traci.vehicle.getIDList():
-        print veh
+        traci.vehicle.setShapeClass(veh, "bus")
         if veh!= self_veh.get_id():
             traci.vehicle.setSpeedMode(veh, 0)
             traci.vehicle.setSpeed(veh, 5)
     print "Self vehicle initialized."
+
+    print traci.vehicle.getShapeClass(self_veh.get_id())
 
 def get_localize():
     localize = Pose()

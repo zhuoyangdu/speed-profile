@@ -54,7 +54,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                              planning::Trajectory* trajectory) {
     newFile();
     // record.
-    std::ofstream out_file_(file_name_.c_str());
+    std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
     for (int i = 0; i < obstacle_map.dynamic_obstacles.size(); i++){
         planning::DynamicObstacle obs = obstacle_map.dynamic_obstacles[i];
         out_file_ << "obstacle\t" << obs.timestamp << "\t" <<
@@ -115,10 +115,18 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                 if(cost_sum < min_cost){
                     min_path = path;
                     min_cost = cost_sum;
+
+                    std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
+                    out_file_ << "path\t" << min_path.size() << "\t";
+                    for (int i = 0; i < path.size(); i++) {
+                        out_file_ << path[i].time << "\t" << path[i].distance << "\t" << path[i].velocity << "\t";
+                    }
+                    out_file_ << "\n";
+                    out_file_.close();
                 }
                 // cout << "found " << n_path << "paths" << endl;
                 // PrintNodes(path);
-                if(n_path > 5){
+                if(n_path > 100){
                     cout << "The final path is: " << endl;
                     PrintNodes(min_path);
                     cout << "The cost of the final path is:" << min_cost << endl;
@@ -165,6 +173,10 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
 
     // Steer to get new node.
     Steer(sample, nearest_node, new_node);
+    if(new_node->time > t_goal_){
+        *node_valid = false;
+        return;
+    }
 
     bool vertex_feasible = VertexFeasible(nearest_node, *new_node);
     if(vertex_feasible){
@@ -190,11 +202,17 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
         new_node->self_id = tree_.size();
         new_node->velocity = ComputeVelocity(min_node, *new_node);
         new_node->cost = cost_min;
-
         tree_.push_back(*new_node);
 
-        near_region = GetUpperRegion(*new_node);
+        // record.
+        std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
+        out_file_ << "steer\t" << "new_node:\t" << new_node->time << "\t"
+            << new_node->distance << "\t" << new_node->velocity << "\t"
+            <<"parent_node:\t" << min_node.time << "\t" << min_node.distance
+            << "\t" <<  min_node.velocity << "\n";
+        out_file_.close();
 
+        near_region = GetUpperRegion(*new_node);
         for(int i = 0; i < near_region.size(); i++){
             Node near_node = near_region[i];
             vertex_feasible = VertexFeasible(*new_node, near_node);
@@ -202,11 +220,23 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
                 std::vector<double> cost_near = near_node.cost;
                 std::vector<double> cost_new = GetNodeCost(*new_node, near_node);
                 if(WeightingCost(cost_near) > WeightingCost(cost_new)){
+                    int previous_parent = near_node.parent_id;
                     near_node.parent_id = new_node->self_id;
                     near_node.velocity = ComputeVelocity(*new_node, near_node);
                     near_node.cost = cost_new;
                     tree_[near_node.self_id] = near_node;
                     cout << "rewire tree." << endl;
+                    // record.
+                    std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
+                    out_file_ << "rewire\t" <<
+                        "new_node:\t" << new_node->time << "\t"
+                        << new_node->distance << "\t"
+                        << new_node->velocity << "\t"
+                        <<"near_node:" << near_node.time
+                        << "\t" << near_node.distance
+                        << "\t" <<  near_node.velocity << "\t"
+                        << "previous_parent\t" << previous_parent << "\n";
+                    out_file_.close();
                 }
             }
         }
