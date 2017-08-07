@@ -7,6 +7,17 @@ PlanningNode::PlanningNode(const ros::NodeHandle& nh){
     ros::param::get("~single_test", single_test_);
     ros::param::get("~planning_path", planning_path_);
 
+    ros::param::get("~single_test/x0", vehicle_x0_);
+    ros::param::get("~single_test/y0", vehicle_y0_);
+    ros::param::get("~single_test/theta0", vehicle_theta0_);
+    ros::param::get("~single_test/s0", vehicle_s0_);
+    ros::param::get("~single_test/v0", vehicle_v0_);
+
+    ros::param::get("~single_test/obs1_x0", obs1_x0_);
+    ros::param::get("~single_test/obs1_y0", obs1_y0_);
+    ros::param::get("~single_test/obs1_theta0", obs1_theta0_);
+    ros::param::get("~single_test/obs1_v0", obs1_v0_);
+
     GetGeometryPath();
 
     rrt_ptr_ = std::move(std::unique_ptr<RRT> (new RRT));
@@ -36,21 +47,30 @@ void PlanningNode::Start(){
         }
     } else {
         vehicle_state_.timestamp = 54000.2;
-        vehicle_state_.x = 502.55;
-        vehicle_state_.y = 480.6;
-        vehicle_state_.theta = 0;
-        vehicle_state_.length = 0.6;
-        vehicle_state_.velocity = 4;
+        vehicle_state_.x = vehicle_x0_;
+        vehicle_state_.y = vehicle_y0_;
+        vehicle_state_.theta = vehicle_theta0_;
+        vehicle_state_.length = vehicle_s0_;
+        vehicle_state_.velocity = vehicle_v0_;
 
-        DynamicObstacle obs;
-        obs.timestamp = 54000.2;
-        obs.id = "veh2";
-        obs.x = 519.5;
-        obs.y = 502.55;
-        obs.theta = 4.712;
-        obs.velocity = 8;
+        DynamicObstacle obs1;
+        obs1.timestamp = 54000.2;
+        obs1.id = "veh2";
+        obs1.x = obs1_x0_;
+        obs1.y = obs1_y0_;
+        obs1.theta = obs1_theta0_;
+        obs1.velocity = obs1_v0_;
+        DynamicObstacle obs2;
+        obs2.timestamp = 54000.2;
+        obs2.id = "veh3";
+        obs2.x = obs2_x0_;
+        obs2.y = obs2_y0_;
+        obs2.theta = obs2_theta0_;
+        obs2.velocity = obs2_v0_;
+
         std::vector<DynamicObstacle> dynamic_obstacles;
-        dynamic_obstacles.push_back(obs);
+        dynamic_obstacles.push_back(obs1);
+        dynamic_obstacles.push_back(obs2);
         obstacle_map_.dynamic_obstacles = dynamic_obstacles;
         planning::Trajectory trajectory;
         rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,

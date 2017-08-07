@@ -42,7 +42,7 @@ def init():
     if options.gui:
         sumoExe = 'sumo-gui'
     sumoBinary = checkBinary(sumoExe)
-    traci.start([sumoBinary, "-c", "/home/parallels/workspace/catkin_ws/planning/data/crossing.sumocfg"])
+    traci.start([sumoBinary, "-c", "/home/zhuoyang/workspace/planning/planning/data/crossing.sumocfg"])
     print "Traci initialized."
 
 def destroy():
