@@ -1,4 +1,4 @@
-single_test : True
+single : True
 rrt/max_failed_attemptes : 100000
 rrt/t_max : 5
 rrt/s_max : 60
@@ -34,4 +34,4 @@ single_test/obs1_v0 : 8
 single_test/obs2_x0 : 520
 single_test/obs2_y0 : 502.55
 single_test/obs2_theta0 : 4.712
-single_test/obs2_v0 : 8
+single_test/obs2_v0 : 3

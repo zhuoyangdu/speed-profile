@@ -4,7 +4,7 @@ namespace planning{
 
 PlanningNode::PlanningNode(const ros::NodeHandle& nh){
 
-    ros::param::get("~single_test", single_test_);
+    ros::param::get("~single", single_test_);
     ros::param::get("~planning_path", planning_path_);
 
     ros::param::get("~single_test/x0", vehicle_x0_);
@@ -69,7 +69,7 @@ void PlanningNode::Start(){
         obs2.velocity = obs2_v0_;
 
         std::vector<DynamicObstacle> dynamic_obstacles;
-        dynamic_obstacles.push_back(obs1);
+        // dynamic_obstacles.push_back(obs1);
         dynamic_obstacles.push_back(obs2);
         obstacle_map_.dynamic_obstacles = dynamic_obstacles;
         planning::Trajectory trajectory;
