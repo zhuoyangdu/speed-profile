@@ -25,11 +25,13 @@ single_test/y0 : 480.6
 single_test/theta0 : 0
 single_test/s0 : 0.6
 single_test/v0 : 4
-single_test/obs1_x0 : 519.5
-single_test/obs1_y0 : 502.55
-single_test/obs1_theta0" : 4.712
+
+single_test/obs1_x0 : 480.0
+single_test/obs1_y0 : 497.45
+single_test/obs1_theta0" : 1.57
 single_test/obs1_v0 : 8
-single_test/obs2_x0 : 519.5
+
+single_test/obs2_x0 : 520
 single_test/obs2_y0 : 502.55
 single_test/obs2_theta0" : 4.712
 single_test/obs2_v0 : 8

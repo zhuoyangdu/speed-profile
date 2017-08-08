@@ -54,17 +54,16 @@ def init_vehicle():
     traci.vehicle.setSpeedMode(self_veh.get_id(), 0)
     traci.vehicle.setSpeed(self_veh.get_id(), float(INIT_SPEED))
 
-    # init obstacles:
-    #traci.vehicle.addFull("obs1", "route03", departPos="480", departSpeed="9")
-    #traci.vehicle.setSpeed("obs1", 9)
-
     traci.simulationStep()
 
     for veh in traci.vehicle.getIDList():
-        traci.vehicle.setShapeClass(veh, "bus")
         if veh!= self_veh.get_id():
             traci.vehicle.setSpeedMode(veh, 0)
             traci.vehicle.setSpeed(veh, 5)
+            print "id:", veh
+            print "pos:", traci.vehicle.getPosition(veh)
+            print "angle:", traci.vehicle.getAngle(veh)
+            print "vel:", traci.vehicle.getSpeed(veh)
     print "Self vehicle initialized."
 
     print traci.vehicle.getShapeClass(self_veh.get_id())

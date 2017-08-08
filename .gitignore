@@ -3,3 +3,4 @@
 .catkin_workspace
 *.pyc
 log*
+/planning/planning/log
