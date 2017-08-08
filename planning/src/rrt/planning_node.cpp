@@ -55,14 +55,14 @@ void PlanningNode::Start(){
 
         DynamicObstacle obs1;
         obs1.timestamp = 54000.2;
-        obs1.id = "veh2";
+        obs1.id = "veh1";
         obs1.x = obs1_x0_;
         obs1.y = obs1_y0_;
         obs1.theta = obs1_theta0_;
         obs1.velocity = obs1_v0_;
         DynamicObstacle obs2;
         obs2.timestamp = 54000.2;
-        obs2.id = "veh3";
+        obs2.id = "veh2";
         obs2.x = obs2_x0_;
         obs2.y = obs2_y0_;
         obs2.theta = obs2_theta0_;
