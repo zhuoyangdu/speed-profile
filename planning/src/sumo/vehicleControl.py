@@ -42,7 +42,11 @@ def init():
     if options.gui:
         sumoExe = 'sumo-gui'
     sumoBinary = checkBinary(sumoExe)
-    traci.start([sumoBinary, "-c", "/home/zhuoyang/workspace/planning/planning/data/crossing.sumocfg"])
+    file_path = os.getcwd() + '/planning/data/crossing.sumocfg'
+    try:
+        traci.start([sumoBinary, "-c", file_path])
+    except Exception as e:
+        print "Error finding simulation files."
     print "Traci initialized."
 
 def destroy():
