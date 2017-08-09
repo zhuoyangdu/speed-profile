@@ -119,7 +119,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                     min_cost = cost_sum;
 
                     std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
-                    out_file_ << "path\n" << min_path.size() << "\t";
+                    out_file_ << "path\n";
                     for (int i = 0; i < path.size(); i++) {
                         out_file_ << path[i].time << "\t" << path[i].distance << "\t" << path[i].velocity << "\n";
                     }
