@@ -112,6 +112,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                 std::deque<Node> path = GetParentPath(new_node);
                 std::vector<double> path_cost = GetPathCost(path);
                 double cost_sum = path_cost[0] + path_cost[1] + path_cost[2];
+                cout << "current path cost: " << cost_sum << ", min cost:" << min_cost << endl;
                 if(cost_sum < min_cost){
                     min_path = path;
                     min_cost = cost_sum;
@@ -125,9 +126,10 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                     out_file_.close();
                 }
                 cout << "found " << n_path << " paths" << endl;
+                cout << "path cost:" << "sum:" << cost_sum << "," << path_cost[0] << "," << path_cost[1] << "," << path_cost[2] << endl;
                 // PrintNodes(path);
-                if(n_path > 100){
-                    cout << "The final path is: " << endl;
+                if(n_path > 50){
+                    cout << "The final path is:" << endl;
                     PrintNodes(min_path);
                     cout << "The cost of the final path is:" << min_cost << endl;
                     break;
@@ -204,6 +206,7 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
         new_node->cost = cost_min;
         tree_.push_back(*new_node);
 
+        /*
         // record.
         std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
         out_file_ << "steer\t" << "new_node:\t" << new_node->time << "\t"
@@ -211,6 +214,7 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
             <<"parent_node:\t" << min_node.time << "\t" << min_node.distance
             << "\t" <<  min_node.velocity << "\n";
         out_file_.close();
+        */
 
         near_region = GetUpperRegion(*new_node);
         for(int i = 0; i < near_region.size(); i++){
@@ -225,6 +229,7 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
                     near_node.velocity = ComputeVelocity(*new_node, near_node);
                     near_node.cost = cost_new;
                     tree_[near_node.self_id] = near_node;
+                    /*
                     // record.
                     std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
                     out_file_ << "rewire\t" <<
@@ -236,6 +241,7 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
                         << "\t" <<  near_node.velocity << "\t"
                         << "previous_parent\t" << previous_parent << "\n";
                     out_file_.close();
+                    */
                 }
             }
         }
@@ -372,7 +378,7 @@ double RRT::GetPathSmoothness(const std::deque<Node>& path){
     for(int i = 1; i < path.size(); i++){
         double acc = (path[i].velocity - path[i-1].velocity) /
                      (path[i].time - path[i-1].time);
-        sum_acc = sum_acc + acc;
+        sum_acc = sum_acc + fabs(acc);
     }
     return sum_acc;
 }
@@ -389,8 +395,10 @@ std::vector<double> RRT::GetNodeCost(const Node& parent_node, const Node& child_
     std::deque<Node> path = GetParentPath(parent_node);
 
     double risk = obstacles.RiskAssessment(path, curve_x_, curve_y_);
-    double smoothness = GetNodeSmooth(parent_node, child_node);
-    double e_vel = GetNodeVelError(parent_node, child_node);
+    double smoothness = GetPathSmoothness(path);
+    double e_vel = GetPathVelError(path);
+    // double smoothness = GetNodeSmooth(parent_node, child_node);
+    // double e_vel = GetNodeVelError(parent_node, child_node);
     std::vector<double> cost = {risk, smoothness, e_vel};
     return cost;
 }

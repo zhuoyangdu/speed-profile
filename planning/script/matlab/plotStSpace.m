@@ -46,5 +46,5 @@ end
 
 figure(2);
 title('s-t motion space');
-pcolor(space_t, space_s, distance_map);
+pcolor(space_t, space_s + veh_s0, distance_map);
 shading interp;
