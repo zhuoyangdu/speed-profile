@@ -94,6 +94,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
 
     clock_t start,ends;
     start=clock();
+    srand(time(NULL));
     while(n_sample < max_failed_attemptes_){
         // Sample.
         n_sample = n_sample + 1;
