@@ -119,11 +119,17 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                     min_cost = cost_sum;
 
                     std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
-                    out_file_ << "path\t" << min_path.size() << "\t";
+                    out_file_ << "path\n" << min_path.size() << "\t";
                     for (int i = 0; i < path.size(); i++) {
-                        out_file_ << path[i].time << "\t" << path[i].distance << "\t" << path[i].velocity << "\t";
+                        out_file_ << path[i].time << "\t" << path[i].distance << "\t" << path[i].velocity << "\n";
                     }
-                    out_file_ << "\n";
+                    out_file_ << "end_path\n";
+                    out_file_ << "tree\n";
+                    for(int i = 0; i < tree_.size(); i++){
+                        out_file_ << tree_[i].time << "\t" << tree_[i].distance << "\t" <<
+                            tree_[i].velocity << "\t" << tree_[i].parent_id << "\n";
+                    }
+                    out_file_ << "end_tree\n";
                     out_file_.close();
                 }
                 cout << "found " << n_path << " paths" << endl;
@@ -165,6 +171,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     }
     return;
 }
+
 
 void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
     // Find nearest node.
