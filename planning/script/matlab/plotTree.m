@@ -1,5 +1,5 @@
 function plotTree
-log_file = fopen('../../log/log_tree_17_08_10_10_28_06');
+log_file = fopen('../../log/log_tree_17_08_10_16_06_13');
 figure(3);
 title('tree and path');
 hold on;
@@ -54,7 +54,7 @@ function plotPath(path)
 end
 
 function plot_tree(tree)
-    figure(3);  
+    figure(2);  
     hold on;
     for i = 2:1:length(tree(:,1))
         cn = tree(i,:);

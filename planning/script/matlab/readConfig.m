@@ -40,6 +40,10 @@ max_vel = str2double(value{index});
 index = ismember(name,'rrt/t_goal');
 t_goal = str2double(value{index});
 max_dis = t_goal * max_vel;
+index = ismember(name,'rrt/t_max');
+t_max = str2double(value{index});
+index = ismember(name,'rrt/s_max');
+s_max = str2double(value{index});
 
 index = ismember(name,'rrt/danger_distance');
 danger_distance = str2double(value{index});

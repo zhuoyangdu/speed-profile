@@ -54,6 +54,18 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                              const Spline& curve_x,
                              const Spline& curve_y,
                              planning::Trajectory* trajectory) {
+    cout << "Start planning!" << endl;
+    cout << "Vehicle state:" << vehicle_state.x << "," << vehicle_state.y << ","
+        << vehicle_state.theta << "," << vehicle_state.velocity << endl;
+    cout << "Obstacles:" << endl;
+    for(int i = 0; i < obstacle_map.dynamic_obstacles.size();i++){
+        cout << obstacle_map.dynamic_obstacles[i].id << ","
+            << obstacle_map.dynamic_obstacles[i].x << ","
+            << obstacle_map.dynamic_obstacles[i].y << ","
+            << obstacle_map.dynamic_obstacles[i].theta << ","
+            << obstacle_map.dynamic_obstacles[i].velocity << endl;
+    }
+
     newFile();
     // record.
     std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
@@ -66,7 +78,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     out_file_ << "vehicle_state\t" << vehicle_state.timestamp << "\t"
         << vehicle_state.x << "\t" << vehicle_state.y << "\t"
         << vehicle_state.theta << "\t" << vehicle_state.velocity << "\n";
-    out_file_.close();
+    //out_file_.close();
 
     // Initialize path.
     curve_x_ = curve_x;
@@ -75,6 +87,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
 
     // Initialize obstacles.
     obstacles.SetObstacles(obstacle_map);
+    obstacles.InitializeDistanceMap(vehicle_state, curve_x_, curve_y_, s0);
 
     // Initialize tree.
     double length = 0;
@@ -101,7 +114,9 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
         // Sample.
         n_sample = n_sample + 1;
         Node sample = RandomSample(s0);
-
+        if(!obstacles.DistanceCheck(sample)){
+            continue;
+        }
         // Extend.
         bool node_valid;
         Node new_node(-1,-1,-1);
@@ -142,7 +157,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                 cout << "found " << n_path << " paths" << endl;
                 cout << "path cost:" << "sum:" << cost_sum << "," << path_cost[0] << "," << path_cost[1] << "," << path_cost[2] << endl;
                 // PrintNodes(path);
-                if(n_path > 50){
+                if(n_path > 5){
                     cout << "The final path is:" << endl;
                     PrintNodes(min_path);
                     cout << "The cost of the final path is:" << min_cost << endl;
@@ -440,37 +455,6 @@ double RRT::GetNodeVelError(const Node& parent_node, const Node& child_node){
     double child_vel = ComputeVelocity(parent_node, child_node);
     return fabs(child_vel-v_goal_);
 }
-/*
-std::vector<Node> RRT::GetLowerRegion(const Node& node){
-    double min_time = node.time - lower_range_t_;
-    double min_distance = node.distance - lower_range_s_;
-    std::vector<Node> near_region;
-    for(int i = 0; i < tree_.size(); i++){
-        if(tree_[i].time < node.time
-            && tree_[i].time > min_time
-            && tree_[i].distance < node.distance
-            && tree_[i].distance > min_distance){
-            near_region.push_back(tree_[i]);
-        }
-    }
-    return near_region;
-}
-
-std::vector<Node> RRT::GetUpperRegion(const Node& node){
-    double max_time = node.time + upper_range_t_;
-    double max_distance = node.distance + upper_range_s_;
-    std::vector<Node> near_region;
-    for(int i = 0; i < tree_.size(); i++){
-        if(tree_[i].time > node.time
-            && tree_[i].time < max_time
-            && tree_[i].distance > node.distance
-            && tree_[i].distance < max_distance){
-            near_region.push_back(tree_[i]);
-        }
-    }
-    return near_region;
-}
-*/
 
 std::vector<Node> RRT::GetLowerRegion(const Node& node){
     std::vector<Node> near_region;

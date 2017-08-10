@@ -19,13 +19,26 @@ public:
 
     double RiskAssessment(const std::deque<Node>& path,
                           const Spline& curve_x, const Spline& curve_y);
+
+    void InitializeDistanceMap(const planning::Pose vehicle_state,
+                               const Spline& curve_x,
+                               const Spline& curve_y,
+                               double s0);
+
+    bool DistanceCheck(const Node& node);
+
 private:
     std::vector<planning::DynamicObstacle> obstacles_;
-
+    std::vector<std::vector<double>> distance_map_;
     double danger_distance_;
     double k_risk_;
     double safe_distance_;
-
+    double t_max_;
+    double s_max_;
     double NonlinearRisk(double input);
+    double init_vehicle_path_length_;
+
+    const double kDeltaT = 0.1;
+    const double kDeltaS = 1.0;
 };
 } // namespace planning

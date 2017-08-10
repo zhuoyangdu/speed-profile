@@ -70,7 +70,7 @@ void PlanningNode::Start(){
 
         std::vector<DynamicObstacle> dynamic_obstacles;
         // dynamic_obstacles.push_back(obs1);
-        // dynamic_obstacles.push_back(obs2);
+        dynamic_obstacles.push_back(obs2);
         obstacle_map_.dynamic_obstacles = dynamic_obstacles;
         planning::Trajectory trajectory;
         rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,

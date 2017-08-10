@@ -21,7 +21,7 @@ veh_spliney = ppval(path_y, veh_s0);
 n_obs = length(obs(:,1));
 space_t = linspace(0, t_goal, 100)';
 space_s = linspace(0, max_dis, 100)';
-collision_map = zeros(length(space_t), length(space_s));
+collision_map = ones(length(space_t), length(space_s));
 distance_map = ones(length(space_t), length(space_s))*1000;
 
 for i = 1:1:length(space_t)
@@ -38,7 +38,7 @@ for i = 1:1:length(space_t)
                 distance_map(i,j) = d;
             end
             if d < danger_distance
-                collision_map(i,j) = 1;
+                collision_map(i,j) = 0;
             end
         end
     end
@@ -46,5 +46,13 @@ end
 
 figure(2);
 title('s-t motion space');
-pcolor(space_t, space_s + veh_s0, distance_map);
+pcolor(space_t, space_s+veh_s0, distance_map');
 shading interp;
+hold on;
+for i = 1:1:length(space_t)
+    for j = 1:1:length(space_s)
+        if collision_map(i,j) == 0
+            plot(space_t(i), space_s(j)+veh_s0,'x');
+        end
+    end
+end

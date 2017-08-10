@@ -6,6 +6,8 @@ Obstacles::Obstacles(){
     ros::param::get("~rrt/k_risk", k_risk_);
     ros::param::get("~rrt/danger_distance", danger_distance_);
     ros::param::get("~rrt/safe_distance", safe_distance_);
+    ros::param::get("~rrt/t_max", t_max_);
+    ros::param::get("~rrt/s_max", s_max_);
 }
 
 void Obstacles::SetObstacles(const planning::ObstacleMap& obstacle_map){
@@ -68,4 +70,58 @@ double Obstacles::RiskAssessment(const std::deque<Node>& path,
     // cout << "risk:" << risk << endl;
 
     return risk;
+}
+
+void Obstacles::InitializeDistanceMap(
+    const planning::Pose vehicle_state,
+    const Spline& curve_x,
+    const Spline& curve_y,
+    double s0){
+    init_vehicle_path_length_ = s0;
+    int nt = static_cast<int>(t_max_/kDeltaT) + 1;
+    int ns = static_cast<int>(s_max_/kDeltaS) + 1;
+    // Init distance map.
+    distance_map_.clear();
+    for(int i = 0; i <=nt; i++) {
+        std::vector<double> dd;
+        for(int j = 0; j <=ns; j++){
+            dd.push_back(0);
+        }
+        distance_map_.push_back(dd);
+    }
+
+    if (obstacles_.size()==0){
+        return;
+    }
+
+    for (int i = 0; i <= nt; i++) {
+        for(int j = 0; j <= ns; j++) {
+            double t = i * kDeltaT;
+            double s = j * kDeltaS;
+            double vehicle_x = curve_x(s + s0);
+            double vehicle_y = curve_y(s + s0);
+            double ss = 10000;
+            for(int i = 0; i < obstacles_.size(); i++){
+                planning::DynamicObstacle obs = obstacles_[i];
+                double obs_pos_x = obs.x + obs.velocity * t * sin(obs.theta);
+                double obs_pos_y = obs.y + obs.velocity * t * cos(obs.theta);
+                double dis = sqrt(pow(obs_pos_x-vehicle_x,2)+pow(obs_pos_y-vehicle_y,2));
+                if(ss > dis) ss = dis;
+            }
+            distance_map_[i][j] = ss;
+        }
+    }
+    return;
+}
+
+bool Obstacles::DistanceCheck(const Node& node){
+    int index_t = static_cast<int>(node.time/kDeltaT);
+    int index_s = static_cast<int>((node.distance - init_vehicle_path_length_)/kDeltaS);
+    double dist = distance_map_[index_t][index_s];
+    
+    if(dist < danger_distance_){
+        return false;
+    } else{
+        return true;
+    }
 }
