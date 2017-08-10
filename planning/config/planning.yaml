@@ -1,6 +1,6 @@
 single : True
 rrt/max_failed_attemptes : 100000
-rrt/t_max : 5
+rrt/t_max : 8
 rrt/s_max : 60
 rrt/t_goal : 3
 rrt/s_goal : 20
@@ -10,7 +10,7 @@ rrt/max_acc : 4
 rrt/max_vel : 12
 rrt/kr : 1
 rrt/ks : 5
-rrt/kv : 1
+rrt/kv : 10
 rrt/lower_range_t : 1
 rrt/lower_range_s : 10
 rrt/upper_range_t : 1

@@ -86,7 +86,7 @@ private:
     std::vector<Node> tree_;
     Spline curve_x_;
     Spline curve_y_;
-
+    int is_rand_ = 0;
     // Config.
     double max_failed_attemptes_;
     double t_max_;

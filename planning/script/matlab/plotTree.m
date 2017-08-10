@@ -1,5 +1,5 @@
 function plotTree
-log_file = fopen('../../log/log_tree_17_08_09_20_26_19');
+log_file = fopen('../../log/log_tree_17_08_10_09_51_30');
 figure(3);
 title('tree and path');
 hold on;

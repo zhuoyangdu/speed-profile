@@ -124,12 +124,16 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                         out_file_ << path[i].time << "\t" << path[i].distance << "\t" << path[i].velocity << "\n";
                     }
                     out_file_ << "end_path\n";
+                    out_file_ << "path_cost:" << cost_sum << "," << path_cost[0]*kr_ << ","
+                        << path_cost[1]*ks_ << "," << path_cost[2]*kv_ << "\n";
+                    /*
                     out_file_ << "tree\n";
                     for(int i = 0; i < tree_.size(); i++){
                         out_file_ << tree_[i].time << "\t" << tree_[i].distance << "\t" <<
                             tree_[i].velocity << "\t" << tree_[i].parent_id << "\n";
                     }
                     out_file_ << "end_tree\n";
+                    */
                     out_file_.close();
                 }
                 cout << "found " << n_path << " paths" << endl;
@@ -139,6 +143,15 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                     cout << "The final path is:" << endl;
                     PrintNodes(min_path);
                     cout << "The cost of the final path is:" << min_cost << endl;
+
+                    std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
+                    out_file_ << "tree\n";
+                    for(int i = 0; i < tree_.size(); i++){
+                        out_file_ << tree_[i].time << "\t" << tree_[i].distance << "\t" <<
+                            tree_[i].velocity << "\t" << tree_[i].parent_id << "\n";
+                    }
+                    out_file_ << "end_tree\n";
+                    out_file_.close();
                     break;
                 }
             }
@@ -265,9 +278,11 @@ double RRT::WeightingCost(std::vector<double>& cost){
 }
 
 Node RRT::RandomSample(double s0){
-    double sample_t = (double) rand()/RAND_MAX * t_max_;
+    double sample_t = 0;
+    double sample_s = 0;
     double sample_s_range = s_max_ < t_max_ * max_vel_ ? s_max_ : t_max_ * max_vel_;
-    double sample_s = (double) rand()/RAND_MAX * s_max_ + s0;
+    sample_t = (double) rand()/RAND_MAX * t_max_;
+    sample_s = (double) rand()/RAND_MAX * s_max_ + s0;
     Node sample(sample_t, sample_s);
     return sample;
 }
@@ -282,9 +297,9 @@ int getMinIndex(const std::vector<double>& v){
 
 void RRT::GetNearestNode(const Node& sample,
                          Node* nearest_node,
-                         bool* node_valid){
+                         bool* node_valid) {
     std::vector<double> dist;
-    for (int i = 0; i < tree_.size(); i++){
+    for(int i = 0; i < tree_.size(); i++) {
         double delta_s = sample.distance - tree_[i].distance;
         double delta_t = sample.time - tree_[i].time;
         // cout << "delta_s:"<< delta_s << " delta_t:"<< delta_t << endl;
@@ -296,10 +311,10 @@ void RRT::GetNearestNode(const Node& sample,
             if(vel > max_vel_ || fabs(acc) > max_acc_){
                 dist.push_back(10000);
             } else {
-                dist.push_back(sqrt(pow(delta_s/s_max_,2) + pow(delta_t/t_max_,2)));
+                dist.push_back(fabs(vel - tree_[i].velocity));
             }
         }
-        // cout << "dist:" << dist[i] << endl;
+        // cout << "dist:" << dist[i] << endl;       
     }
     int min_index = getMinIndex(dist);
     if (dist[min_index] >= 10000){
