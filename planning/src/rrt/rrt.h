@@ -104,6 +104,9 @@ private:
     double lower_range_s_;
     double upper_range_t_;
     double upper_range_s_;
+    double lower_range_a_;
+    double upper_range_a_;
+
     double k_risk_;
     double danger_distance_;
     double safe_distance_;

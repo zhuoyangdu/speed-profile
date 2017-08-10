@@ -9,12 +9,15 @@ rrt/dt : 0.1
 rrt/max_acc : 4
 rrt/max_vel : 12
 rrt/kr : 1
-rrt/ks : 5
-rrt/kv : 10
+rrt/ks : 1
+rrt/kv : 2
 rrt/lower_range_t : 1
 rrt/lower_range_s : 10
 rrt/upper_range_t : 1
 rrt/upper_range_s : 10
+rrt/upper_range_a: 0.5
+rrt/lower_range_a: 0.5
+
 rrt/k_risk : 10
 rrt/danger_distance : 10
 rrt/safe_distance : 50
