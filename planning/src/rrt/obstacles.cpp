@@ -8,6 +8,7 @@ Obstacles::Obstacles(){
     ros::param::get("~rrt/safe_distance", safe_distance_);
     ros::param::get("~rrt/t_max", t_max_);
     ros::param::get("~rrt/s_max", s_max_);
+    ros::param::get("~planning_path", planning_path_);
 }
 
 void Obstacles::SetObstacles(const planning::ObstacleMap& obstacle_map){
@@ -81,6 +82,12 @@ void Obstacles::InitializeDistanceMap(
     int nt = static_cast<int>(t_max_/kDeltaT) + 1;
     int ns = static_cast<int>(s_max_/kDeltaS) + 1;
     // Init distance map.
+    cout << "[obs]vehicle" << vehicle_state.x << "," << vehicle_state.y << endl;
+    for(int k = 0; k < obstacles_.size(); k++){
+        cout << "[obs] obs" << obstacles_[k].id << "," << obstacles_[k].x << ","
+            << obstacles_[k].y << "," << obstacles_[k].theta << "," << obstacles_[k].velocity << endl;
+    }
+
     distance_map_.clear();
     for(int i = 0; i <=nt; i++) {
         std::vector<double> dd;
@@ -101,8 +108,8 @@ void Obstacles::InitializeDistanceMap(
             double vehicle_x = curve_x(s + s0);
             double vehicle_y = curve_y(s + s0);
             double ss = 10000;
-            for(int i = 0; i < obstacles_.size(); i++){
-                planning::DynamicObstacle obs = obstacles_[i];
+            for(int k = 0; k < obstacles_.size(); k++){
+                planning::DynamicObstacle obs = obstacles_[k];
                 double obs_pos_x = obs.x + obs.velocity * t * sin(obs.theta);
                 double obs_pos_y = obs.y + obs.velocity * t * cos(obs.theta);
                 double dis = sqrt(pow(obs_pos_x-vehicle_x,2)+pow(obs_pos_y-vehicle_y,2));
@@ -111,6 +118,7 @@ void Obstacles::InitializeDistanceMap(
             distance_map_[i][j] = ss;
         }
     }
+    recordDistanceMap();
     return;
 }
 
@@ -124,4 +132,21 @@ bool Obstacles::DistanceCheck(const Node& node){
     } else{
         return true;
     }
+}
+
+void Obstacles::recordDistanceMap(){
+    int nt = static_cast<int>(t_max_/kDeltaT) + 1;
+    int ns = static_cast<int>(s_max_/kDeltaS) + 1;
+    std::string file_name_ = planning_path_ + "/log/distance_map.txt";
+    std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
+    for (int i = 0; i <= nt; i++) {
+        for(int j = 0; j <= ns; j++) {
+            double t = i * kDeltaT;
+            double s = j * kDeltaS;
+            double dist = distance_map_[i][j];
+            out_file_ << dist << "\t";
+        }
+        out_file_ << "\n";
+    }
+    out_file_.close();
 }

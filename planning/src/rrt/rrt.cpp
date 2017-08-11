@@ -34,7 +34,7 @@ RRT::RRT(){
 void RRT::newFile(){
     time_t t = std::time(NULL);
     struct tm * now = std::localtime(&t);
-
+    /*
     file_name_ = planning_path_ + "/log/log_tree_"
                  + int2string(now->tm_year + 1900 - 2000)
                  + '_' + int2string(now->tm_mon + 1)
@@ -42,6 +42,8 @@ void RRT::newFile(){
                  + '_' + int2string(now->tm_hour)
                  + '_' + int2string(now->tm_min)
                  + '_' + int2string(now->tm_sec);
+    */
+    file_name_ = planning_path_ + "/log/rrt.txt";
     std::ofstream out_file_(file_name_.c_str());
     if (!out_file_) {
         ROS_INFO("no file!");
@@ -117,19 +119,21 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
         if(!obstacles.DistanceCheck(sample)){
             continue;
         }
+        std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
+        out_file_ << "sample\t" << sample.time << "\t" << sample.distance << "\n";
+        // out_file_.close();
+
         // Extend.
         bool node_valid;
         Node new_node(-1,-1,-1);
         Extend(sample, &new_node, &node_valid);
         // sample.print_node();
-
         if(node_valid){
             n_feasible = n_feasible + 1;
             if(ReachingGoal(new_node)){
                 n_path = n_path + 1;
                 std::deque<Node> path = GetParentPath(new_node);
                 std::vector<double> path_cost = GetPathCost(path);
-                // double cost_sum = path_cost[0] + path_cost[1] + path_cost[2];
                 double cost_sum = WeightingCost(path_cost);
                 cout << "current path cost: " << cost_sum << ", min cost:" << min_cost << endl;
                 if(cost_sum < min_cost){
@@ -144,14 +148,6 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                     out_file_ << "end_path\n";
                     out_file_ << "path_cost:" << cost_sum << "," << path_cost[0]*kr_ << ","
                         << path_cost[1]*ks_ << "," << path_cost[2]*kv_ << "\n";
-                    /*
-                    out_file_ << "tree\n";
-                    for(int i = 0; i < tree_.size(); i++){
-                        out_file_ << tree_[i].time << "\t" << tree_[i].distance << "\t" <<
-                            tree_[i].velocity << "\t" << tree_[i].parent_id << "\n";
-                    }
-                    out_file_ << "end_tree\n";
-                    */
                     out_file_.close();
                 }
                 cout << "found " << n_path << " paths" << endl;
@@ -161,20 +157,20 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                     cout << "The final path is:" << endl;
                     PrintNodes(min_path);
                     cout << "The cost of the final path is:" << min_cost << endl;
-
-                    std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
-                    out_file_ << "tree\n";
-                    for(int i = 0; i < tree_.size(); i++){
-                        out_file_ << tree_[i].time << "\t" << tree_[i].distance << "\t" <<
-                            tree_[i].velocity << "\t" << tree_[i].parent_id << "\n";
-                    }
-                    out_file_ << "end_tree\n";
-                    out_file_.close();
                     break;
                 }
             }
         }
     }
+
+    // std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
+    out_file_ << "tree\n";
+    for(int i = 0; i < tree_.size(); i++){
+        out_file_ << tree_[i].time << "\t" << tree_[i].distance << "\t" <<
+            tree_[i].velocity << "\t" << tree_[i].parent_id << "\n";
+    }
+    out_file_ << "end_tree\n";
+    out_file_.close();
 
     cout << "total attemps:" << n_sample << ", feasible sample:" << n_feasible << endl;
 
@@ -212,9 +208,12 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
         return;
     }
 
+    int n_collision_sample = 0;
+
     // Steer to get new node.
     Steer(sample, nearest_node, new_node);
     if(new_node->time > t_goal_){
+        n_collision_sample += 1;
         *node_valid = false;
         return;
     }
@@ -245,16 +244,6 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
         new_node->cost = cost_min;
         tree_.push_back(*new_node);
 
-        /*
-        // record.
-        std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
-        out_file_ << "steer\t" << "new_node:\t" << new_node->time << "\t"
-            << new_node->distance << "\t" << new_node->velocity << "\t"
-            <<"parent_node:\t" << min_node.time << "\t" << min_node.distance
-            << "\t" <<  min_node.velocity << "\n";
-        out_file_.close();
-        */
-
         near_region = GetUpperRegion(*new_node);
         for(int i = 0; i < near_region.size(); i++){
             Node near_node = near_region[i];
@@ -268,19 +257,6 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid){
                     near_node.velocity = ComputeVelocity(*new_node, near_node);
                     near_node.cost = cost_new;
                     tree_[near_node.self_id] = near_node;
-                    /*
-                    // record.
-                    std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
-                    out_file_ << "rewire\t" <<
-                        "new_node:\t" << new_node->time << "\t"
-                        << new_node->distance << "\t"
-                        << new_node->velocity << "\t"
-                        <<"near_node:" << near_node.time
-                        << "\t" << near_node.distance
-                        << "\t" <<  near_node.velocity << "\t"
-                        << "previous_parent\t" << previous_parent << "\n";
-                    out_file_.close();
-                    */
                 }
             }
         }
@@ -300,7 +276,8 @@ Node RRT::RandomSample(double s0){
     double sample_s = 0;
     double sample_s_range = s_max_ < t_max_ * max_vel_ ? s_max_ : t_max_ * max_vel_;
     sample_t = (double) rand()/RAND_MAX * t_max_;
-    sample_s = (double) rand()/RAND_MAX * s_max_ + s0;
+    double s_range = sample_t * max_vel_;
+    sample_s = (double) rand()/RAND_MAX * s_range + s0;
     Node sample(sample_t, sample_s);
     return sample;
 }

@@ -1,3 +1,4 @@
+readConfig;
 % path spline
 x = road(:,1);
 y = road(:,2);
@@ -19,8 +20,8 @@ veh_splinex = ppval(path_x, veh_s0);
 veh_spliney = ppval(path_y, veh_s0);
 
 n_obs = length(obs(:,1));
-space_t = linspace(0, t_goal, 100)';
-space_s = linspace(0, max_dis, 100)';
+space_t = linspace(0, t_max, 100)';
+space_s = linspace(0, s_max, 100)';
 collision_map = ones(length(space_t), length(space_s));
 distance_map = ones(length(space_t), length(space_s))*1000;
 
@@ -56,3 +57,4 @@ for i = 1:1:length(space_t)
         end
     end
 end
+plot([0,t_max],[veh_s0,t_max*max_vel+veh_s0],'-','LineWidth',3);

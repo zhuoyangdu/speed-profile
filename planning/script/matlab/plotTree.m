@@ -1,11 +1,9 @@
 function plotTree
-log_file = fopen('../../log/log_tree_17_08_10_16_06_13');
-figure(3);
-title('tree and path');
-hold on;
+log_file = fopen('../../log/rrt.txt');
 
 while 1
     tline = fgetl(log_file);
+    if ~ischar(tline), break, end
     if strcmp(tline, 'path')
         path = [];
         while 1
@@ -15,9 +13,8 @@ while 1
             path = [path; sline];
         end
         plotPath(path);
-        continue;
-    end
-    if strcmp(tline, 'tree')
+
+    else if strcmp(tline, 'tree')
         tree = [];
         while 1
             tline = fgetl(log_file);
@@ -26,23 +23,21 @@ while 1
             tree = [tree; sline];
         end
         plot_tree(tree);
-        continue;
+  
+        else if contains(tline, 'sample')
+            sline = strsplit(tline, '\t');
+            sample_t = str2double(sline(2));
+            sample_s = str2double(sline(3));
+            figure(2);
+            plot(sample_t, sample_s, '.');
+            end
+        end
     end
-    if ~ischar(tline), break, end
 end
 fclose(log_file);
 end
 
 function plotPath(path)
-    %{
-    figure(3);
-    for i = 1:1:length(path(:,1))-1
-        cn = path(i,:);
-        pn = path(i+1,:);
-        plot([cn(1), pn(1)], [cn(2), pn(2)], 'r', 'LineWidth',2);
-        hold on;
-    end
-    %}
     figure(4);
     hold on;
     for i = 1:1:length(path(:,1))-1

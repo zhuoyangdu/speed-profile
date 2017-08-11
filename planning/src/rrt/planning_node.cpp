@@ -69,7 +69,7 @@ void PlanningNode::Start(){
         obs2.velocity = obs2_v0_;
 
         std::vector<DynamicObstacle> dynamic_obstacles;
-        // dynamic_obstacles.push_back(obs1);
+        dynamic_obstacles.push_back(obs1);
         dynamic_obstacles.push_back(obs2);
         obstacle_map_.dynamic_obstacles = dynamic_obstacles;
         planning::Trajectory trajectory;

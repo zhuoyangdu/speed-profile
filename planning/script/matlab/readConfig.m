@@ -31,9 +31,9 @@ index = ismember(name,'single_test/obs2_v0');
 obs2_v0 = str2double(value{index});
 
 veh = [veh_x0, veh_y0, veh_theta0, veh_v0];
-%obs = [obs1_x0,obs1_y0, obs1_theta0, obs1_v0; obs2_x0, obs2_y0, obs2_theta0, obs2_v0];
+obs = [obs1_x0,obs1_y0, obs1_theta0, obs1_v0; obs2_x0, obs2_y0, obs2_theta0, obs2_v0];
 %obs = [obs1_x0,obs1_y0, obs1_theta0, obs1_v0];
-obs = [obs2_x0,obs2_y0, obs2_theta0, obs2_v0];
+%obs = [obs2_x0,obs2_y0, obs2_theta0, obs2_v0];
 % import config
 index = ismember(name,'rrt/max_vel');
 max_vel = str2double(value{index});

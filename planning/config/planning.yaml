@@ -6,8 +6,8 @@ rrt/t_goal : 3
 rrt/s_goal : 20
 rrt/v_goal : 10
 rrt/dt : 0.1
-rrt/max_acc : 4
-rrt/max_vel : 12
+rrt/max_acc : 10
+rrt/max_vel : 15
 rrt/kr : 1
 rrt/ks : 1
 rrt/kv : 2
@@ -29,12 +29,12 @@ single_test/theta0 : 0
 single_test/s0 : 0.6
 single_test/v0 : 6
 
-single_test/obs1_x0 : 484
-single_test/obs1_y0 : 497.45
-single_test/obs1_theta0 : 1.57
-single_test/obs1_v0 : 5
+single_test/obs1_x0 : 502.55
+single_test/obs1_y0 : 460
+single_test/obs1_theta0 : 0
+single_test/obs1_v0 : 4
 
-single_test/obs2_x0 : 519.5
+single_test/obs2_x0 : 505.5
 single_test/obs2_y0 : 502.5
 single_test/obs2_theta0 : 4.712
 single_test/obs2_v0 : 8

@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <deque>
+#include <fstream>
 #include "common.h"
 #include "spline.h"
 #include "planning/Pose.h"
@@ -37,8 +38,10 @@ private:
     double s_max_;
     double NonlinearRisk(double input);
     double init_vehicle_path_length_;
-
+    std::string planning_path_;
     const double kDeltaT = 0.1;
     const double kDeltaS = 1.0;
+
+    void recordDistanceMap();
 };
 } // namespace planning
