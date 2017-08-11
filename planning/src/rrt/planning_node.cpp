@@ -83,7 +83,8 @@ void PlanningNode::VehicleStateCallback(const planning::Pose& localize) {
     localize_ready_ = true;
 }
 
-void PlanningNode::ObstacleCallback(const planning::ObstacleMap& obstacle_map) {
+void PlanningNode::ObstacleCallback(const planning::ObstacleMap&
+                                    obstacle_map) {
     obstacle_map_ = obstacle_map;
     obstacle_ready_ = true;
 }

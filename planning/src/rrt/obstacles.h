@@ -15,7 +15,9 @@ class Obstacles {
 
     void SetObstacles(const planning::ObstacleMap& obstacle_map);
 
-    bool CollisionFree(const planning::Node& parent_node, const planning::Node& child_node, const Spline& curve_x, const Spline& curve_y);
+    bool CollisionFree(const planning::Node& parent_node,
+                       const planning::Node& child_node, const Spline& curve_x,
+                       const Spline& curve_y);
 
 
     double RiskAssessment(const std::deque<Node>& path,

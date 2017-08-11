@@ -49,7 +49,8 @@ class RRT {
     bool VertexFeasible(const Node& parent_node, const Node& child_node);
 
 
-    std::vector<double> GetNodeCost(const Node& parent_node, const Node& child_node);
+    std::vector<double> GetNodeCost(const Node& parent_node,
+                                    const Node& child_node);
 
     std::deque<Node> GetParentPath(const Node& node);
 
