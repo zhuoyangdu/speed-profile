@@ -155,7 +155,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                 cout << "path cost:" << "sum:" << cost_sum << "," << path_cost[0] << "," <<
                      path_cost[1] << "," << path_cost[2] << endl;
                 // PrintNodes(path);
-                if (n_path > 5) {
+                if (n_path > 50) {
                     cout << "The final path is:" << endl;
                     PrintNodes(min_path);
                     cout << "The cost of the final path is:" << min_cost << endl;
@@ -223,6 +223,13 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid) {
     }
 
     bool vertex_feasible = VertexFeasible(nearest_node, *new_node);
+    /*
+    if (sample.time >= 3) {
+        cout << "sample node:" << sample.time << "," << sample.distance <<
+             " nearest_node:" << nearest_node.time << "," << nearest_node.distance <<
+             " new node:" << new_node->time << "," << new_node->distance << endl;
+    }
+    */
     if (vertex_feasible) {
         *node_valid = true;
         Node min_node = nearest_node;
@@ -242,11 +249,13 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid) {
                 }
             }
         }
+        min_node = nearest_node;
         new_node->parent_id = min_node.self_id;
         new_node->self_id = tree_.size();
         new_node->velocity = ComputeVelocity(min_node, *new_node);
         new_node->cost = cost_min;
         tree_.push_back(*new_node);
+
 
         near_region = GetUpperRegion(*new_node);
         for (int i = 0; i < near_region.size(); i++) {
@@ -264,6 +273,7 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid) {
                 }
             }
         }
+
     } else {
         // std::cout << "no feasible!" << endl;
         *node_valid = false;
@@ -311,7 +321,7 @@ void RRT::GetNearestNode(const Node& sample,
             if (vel > max_vel_ || fabs(acc) > max_acc_) {
                 dist.push_back(10000);
             } else {
-                dist.push_back(fabs(acc));
+                dist.push_back(fabs(acc) + fabs(sample.time-tree_[i].time));
             }
         }
         // cout << "dist:" << dist[i] << endl;
@@ -465,7 +475,7 @@ std::vector<Node> RRT::GetUpperRegion(const Node& node) {
             double vel = (node.distance - tree_[i].distance) / (node.time -
                          tree_[i].time);
             double acc = (vel - tree_[i].velocity) / (node.time - tree_[i].time);
-            if (fabs(acc) < lower_range_a_) {
+            if (fabs(acc) < lower_range_a_ && fabs(node.time - tree_[i].time) < 1) {
                 near_region.push_back(tree_[i]);
             }
         }

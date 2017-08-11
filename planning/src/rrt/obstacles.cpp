@@ -85,13 +85,6 @@ void Obstacles::InitializeDistanceMap(
     int nt = static_cast<int>(t_max_ / kDeltaT) + 1;
     int ns = static_cast<int>(s_max_ / kDeltaS) + 1;
     // Init distance map.
-    cout << "[obs]vehicle" << vehicle_state.x << "," << vehicle_state.y << endl;
-    for (int k = 0; k < obstacles_.size(); k++) {
-        cout << "[obs] obs" << obstacles_[k].id << "," << obstacles_[k].x << ","
-             << obstacles_[k].y << "," << obstacles_[k].theta << "," <<
-             obstacles_[k].velocity << endl;
-    }
-
     distance_map_.clear();
     for (int i = 0; i <= nt; i++) {
         std::vector<double> dd;

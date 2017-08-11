@@ -1,0 +1,4 @@
+clear;
+readConfig;
+plotDistanceMap;
+plotTree;

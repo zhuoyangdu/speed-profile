@@ -32,19 +32,8 @@ class PlanningNode {
     bool single_test_ = true;
     double rate_ = 1;
 
-    double vehicle_x0_ = 502.55;
-    double vehicle_y0_ = 480.6;
-    double vehicle_theta0_ = 0;
-    double vehicle_s0_ = 0.6;
-    double vehicle_v0_ = 4;
-    double obs1_x0_ = 519.5;
-    double obs1_y0_ = 502.55;
-    double obs1_theta0_ = 4.712;
-    double obs1_v0_ = 8;
-    double obs2_x0_ = 519.5;
-    double obs2_y0_ = 502.55;
-    double obs2_theta0_ = 4.712;
-    double obs2_v0_ = 8;
+    std::vector<DynamicObstacle> single_test_obstacles_;
+    planning::Pose single_test_vehicle_;
 
     bool obstacle_ready_ = false;
     bool localize_ready_ = false;
@@ -59,6 +48,8 @@ class PlanningNode {
     Spline curve_y_;
 
     std::string planning_path_;
+
+    void ParamConfig();
 };
 }
 

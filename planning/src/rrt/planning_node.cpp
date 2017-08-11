@@ -4,19 +4,7 @@ namespace planning {
 
 PlanningNode::PlanningNode(const ros::NodeHandle& nh) {
 
-    ros::param::get("~single", single_test_);
-    ros::param::get("~planning_path", planning_path_);
-
-    ros::param::get("~single_test/x0", vehicle_x0_);
-    ros::param::get("~single_test/y0", vehicle_y0_);
-    ros::param::get("~single_test/theta0", vehicle_theta0_);
-    ros::param::get("~single_test/s0", vehicle_s0_);
-    ros::param::get("~single_test/v0", vehicle_v0_);
-
-    ros::param::get("~single_test/obs1_x0", obs1_x0_);
-    ros::param::get("~single_test/obs1_y0", obs1_y0_);
-    ros::param::get("~single_test/obs1_theta0", obs1_theta0_);
-    ros::param::get("~single_test/obs1_v0", obs1_v0_);
+    ParamConfig();
 
     GetGeometryPath();
 
@@ -46,32 +34,9 @@ void PlanningNode::Start() {
             loop_rate.sleep();
         }
     } else {
-        vehicle_state_.timestamp = 54000.2;
-        vehicle_state_.x = vehicle_x0_;
-        vehicle_state_.y = vehicle_y0_;
-        vehicle_state_.theta = vehicle_theta0_;
-        vehicle_state_.length = vehicle_s0_;
-        vehicle_state_.velocity = vehicle_v0_;
+        vehicle_state_ = single_test_vehicle_;
+        obstacle_map_.dynamic_obstacles = single_test_obstacles_;
 
-        DynamicObstacle obs1;
-        obs1.timestamp = 54000.2;
-        obs1.id = "veh1";
-        obs1.x = obs1_x0_;
-        obs1.y = obs1_y0_;
-        obs1.theta = obs1_theta0_;
-        obs1.velocity = obs1_v0_;
-        DynamicObstacle obs2;
-        obs2.timestamp = 54000.2;
-        obs2.id = "veh2";
-        obs2.x = obs2_x0_;
-        obs2.y = obs2_y0_;
-        obs2.theta = obs2_theta0_;
-        obs2.velocity = obs2_v0_;
-
-        std::vector<DynamicObstacle> dynamic_obstacles;
-        dynamic_obstacles.push_back(obs1);
-        dynamic_obstacles.push_back(obs2);
-        obstacle_map_.dynamic_obstacles = dynamic_obstacles;
         planning::Trajectory trajectory;
         rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                      curve_x_, curve_y_, &trajectory);
@@ -109,7 +74,7 @@ void PlanningNode::GetGeometryPath() {
     std::string file_name = planning_path_ + "/data/RoadXY.txt";
     std::ifstream file(file_name);
     if (file.is_open()) {
-        ROS_INFO("reading road config.");
+        ROS_INFO("Reading road config.");
         int i;
         while (getline(file, line)) {
             std::vector<std::string> ps;
@@ -131,6 +96,62 @@ void PlanningNode::GetGeometryPath() {
     //Spline::fitCurve();
     Spline::fitCurve(xs, ys, &curve_x_, &curve_y_, &path_length);
 
+}
+
+void PlanningNode::ParamConfig() {
+    ros::param::get("~single", single_test_);
+    ros::param::get("~planning_path", planning_path_);
+    if (single_test_) {
+        std::string single_test_case;
+        int collision_number;
+        ros::param::get("~single_test/single_test_case", single_test_case);
+        ros::param::get("~single_test/collision_number", collision_number);
+
+        std::vector<DynamicObstacle> dynamic_obstacles;
+        if (single_test_case == "emergency_stop") {
+            single_test_vehicle_.timestamp = 54000;
+            ros::param::get("~emergency_stop_case/x0", single_test_vehicle_.x);
+            ros::param::get("~emergency_stop_case/y0", single_test_vehicle_.y);
+            ros::param::get("~emergency_stop_case/theta0", single_test_vehicle_.theta);
+            ros::param::get("~emergency_stop_case/v0", single_test_vehicle_.velocity);
+
+            if (collision_number == 0) {
+                std::cout << "No obstacle in single test." << std::endl;
+            } else if (collision_number == 1 || collision_number == 2) {
+                DynamicObstacle obs;
+                obs.id = "obs1";
+                ros::param::get("~emergency_stop_case/obs1_x0", obs.x);
+                ros::param::get("~emergency_stop_case/obs1_y0", obs.y);
+                ros::param::get("~emergency_stop_case/obs1_theta0", obs.theta);
+                ros::param::get("~emergency_stop_case/obs1_v0", obs.velocity);
+                dynamic_obstacles.push_back(obs);
+                if (collision_number == 2) {
+                    DynamicObstacle obs;
+                    obs.id = "obs2";
+                    ros::param::get("~emergency_stop_case/obs2_x0", obs.x);
+                    ros::param::get("~emergency_stop_case/obs2_y0", obs.y);
+                    ros::param::get("~emergency_stop_case/obs2_theta0", obs.theta);
+                    ros::param::get("~emergency_stop_case/obs2_v0", obs.velocity);
+                    dynamic_obstacles.push_back(obs);
+                }
+            } else {
+                ROS_ERROR("The number of obstacle is out of range.");
+            }
+        }
+        single_test_obstacles_ = dynamic_obstacles;
+        std::cout << "Single test case:" << single_test_case << std::endl;
+        std::cout << "Initial state:" << std::endl;
+        std::cout << "  vehicle state: " << single_test_vehicle_.x << ", " <<
+                  single_test_vehicle_.y << ", " << single_test_vehicle_.theta << ", " <<
+                  single_test_vehicle_.velocity << std::endl;
+        std::cout << "Obstacles: " <<  collision_number << "in total" << std::endl;
+        for (int i = 0; i < collision_number; i++) {
+            std::cout << "   obstacle " << i + 1 << ": " << dynamic_obstacles[i].x << ", "
+                      << dynamic_obstacles[i].y << ", " << dynamic_obstacles[i].theta <<
+                      ", " << dynamic_obstacles[i].velocity << std::endl;
+        }
+
+    }
 }
 
 } // namespace planning

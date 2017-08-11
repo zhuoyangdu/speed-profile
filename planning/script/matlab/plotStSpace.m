@@ -16,6 +16,7 @@ closest2 = road(indexes(2),:);
 s2 = path_s(indexes(2));
 k = sqrt((veh(1)-closest1(1))^2 + (veh(2)-closest1(2))^2)/sqrt((veh(1)-closest2(1))^2 + (veh(2)-closest2(2))^2);
 veh_s0 = (k*s2+s1)/(k+1);
+
 veh_splinex = ppval(path_x, veh_s0);
 veh_spliney = ppval(path_y, veh_s0);
 
