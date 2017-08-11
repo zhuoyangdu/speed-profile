@@ -10,7 +10,6 @@ RRT::RRT(){
     ros::param::get("~rrt/t_max", t_max_);
     ros::param::get("~rrt/s_max", s_max_);
     ros::param::get("~rrt/t_goal", t_goal_);
-    ros::param::get("~rrt/s_goal", s_goal_);
     ros::param::get("~rrt/v_goal", v_goal_);
     ros::param::get("~rrt/dt", dt_);
     ros::param::get("~rrt/max_acc", max_acc_);

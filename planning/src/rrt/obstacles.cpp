@@ -11,16 +11,16 @@ Obstacles::Obstacles(){
     ros::param::get("~planning_path", planning_path_);
 }
 
-void Obstacles::SetObstacles(const planning::ObstacleMap& obstacle_map){
+void Obstacles::SetObstacles(const planning::ObstacleMap& obstacle_map) {
     obstacles_ = obstacle_map.dynamic_obstacles;
 }
 
 bool Obstacles::CollisionFree(const Node& parent_node, const Node& child_node,
-                              const Spline& curve_x, const Spline& curve_y){
-    for(int i = 0; i < obstacles_.size(); i++){
+                              const Spline& curve_x, const Spline& curve_y) {
+    for (int i = 0; i < obstacles_.size(); i++) {
         planning::DynamicObstacle obs = obstacles_[i];
         double t = parent_node.time;
-        while(t <= child_node.time){
+        while (t <= child_node.time) {
             double obs_pos_x = obs.x + obs.velocity * t * sin(obs.theta);
             double obs_pos_y = obs.y + obs.velocity * t * cos(obs.theta);
             double vel = (parent_node.distance - child_node.distance) / (parent_node.time - child_node.time);
@@ -29,7 +29,7 @@ bool Obstacles::CollisionFree(const Node& parent_node, const Node& child_node,
             double vehicle_y = curve_y(s);
             double dist = sqrt(pow(obs_pos_x-vehicle_x,2)+pow(obs_pos_y-vehicle_y,2));
             t = t + 0.1;
-            if(dist < danger_distance_){
+            if (dist < danger_distance_){
                 return false;
             }
         }
@@ -37,22 +37,22 @@ bool Obstacles::CollisionFree(const Node& parent_node, const Node& child_node,
     return true;
 }
 
-double Obstacles::NonlinearRisk(double input){
-    if(input > safe_distance_) return 0;
+double Obstacles::NonlinearRisk(double input) {
+    if (input > safe_distance_) return 0;
 
     return k_risk_ / (input - danger_distance_);
 }
 
 double Obstacles::RiskAssessment(const std::deque<Node>& path,
-                                 const Spline& curve_x, const Spline& curve_y){
+                                 const Spline& curve_x, const Spline& curve_y) {
     if (obstacles_.empty()){
         return 0;
     }
     std::vector<double> min_dis;
-    for(int i = 0; i < obstacles_.size(); i++){
+    for (int i = 0; i < obstacles_.size(); i++) {
         planning::DynamicObstacle obs = obstacles_[i];
         std::vector<double> dis;
-        for(int i = 0; i < path.size(); i++){
+        for (int i = 0; i < path.size(); i++){
             double vehicle_x = curve_x(path[i].distance);
             double vehicle_y = curve_y(path[i].distance);
             double obs_pos_x = obs.x + obs.velocity * path[i].time * sin(obs.theta);
@@ -77,43 +77,43 @@ void Obstacles::InitializeDistanceMap(
     const planning::Pose vehicle_state,
     const Spline& curve_x,
     const Spline& curve_y,
-    double s0){
+    double s0) {
     init_vehicle_path_length_ = s0;
     int nt = static_cast<int>(t_max_/kDeltaT) + 1;
     int ns = static_cast<int>(s_max_/kDeltaS) + 1;
     // Init distance map.
     cout << "[obs]vehicle" << vehicle_state.x << "," << vehicle_state.y << endl;
-    for(int k = 0; k < obstacles_.size(); k++){
+    for (int k = 0; k < obstacles_.size(); k++){
         cout << "[obs] obs" << obstacles_[k].id << "," << obstacles_[k].x << ","
             << obstacles_[k].y << "," << obstacles_[k].theta << "," << obstacles_[k].velocity << endl;
     }
 
     distance_map_.clear();
-    for(int i = 0; i <=nt; i++) {
+    for (int i = 0; i <=nt; i++) {
         std::vector<double> dd;
-        for(int j = 0; j <=ns; j++){
+        for (int j = 0; j <=ns; j++) {
             dd.push_back(0);
         }
         distance_map_.push_back(dd);
     }
 
-    if (obstacles_.size()==0){
+    if (obstacles_.size()==0) {
         return;
     }
 
     for (int i = 0; i <= nt; i++) {
-        for(int j = 0; j <= ns; j++) {
+        for (int j = 0; j <= ns; j++) {
             double t = i * kDeltaT;
             double s = j * kDeltaS;
             double vehicle_x = curve_x(s + s0);
             double vehicle_y = curve_y(s + s0);
             double ss = 10000;
-            for(int k = 0; k < obstacles_.size(); k++){
+            for (int k = 0; k < obstacles_.size(); k++){
                 planning::DynamicObstacle obs = obstacles_[k];
                 double obs_pos_x = obs.x + obs.velocity * t * sin(obs.theta);
                 double obs_pos_y = obs.y + obs.velocity * t * cos(obs.theta);
                 double dis = sqrt(pow(obs_pos_x-vehicle_x,2)+pow(obs_pos_y-vehicle_y,2));
-                if(ss > dis) ss = dis;
+                if (ss > dis) ss = dis;
             }
             distance_map_[i][j] = ss;
         }
@@ -122,25 +122,25 @@ void Obstacles::InitializeDistanceMap(
     return;
 }
 
-bool Obstacles::DistanceCheck(const Node& node){
+bool Obstacles::DistanceCheck(const Node& node) {
     int index_t = static_cast<int>(node.time/kDeltaT);
     int index_s = static_cast<int>((node.distance - init_vehicle_path_length_)/kDeltaS);
     double dist = distance_map_[index_t][index_s];
     
-    if(dist < danger_distance_){
+    if (dist < danger_distance_) {
         return false;
     } else{
         return true;
     }
 }
 
-void Obstacles::recordDistanceMap(){
+void Obstacles::recordDistanceMap() {
     int nt = static_cast<int>(t_max_/kDeltaT) + 1;
     int ns = static_cast<int>(s_max_/kDeltaS) + 1;
     std::string file_name_ = planning_path_ + "/log/distance_map.txt";
     std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
     for (int i = 0; i <= nt; i++) {
-        for(int j = 0; j <= ns; j++) {
+        for (int j = 0; j <= ns; j++) {
             double t = i * kDeltaT;
             double s = j * kDeltaS;
             double dist = distance_map_[i][j];

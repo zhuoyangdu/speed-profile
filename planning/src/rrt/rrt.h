@@ -92,7 +92,6 @@ private:
     double t_max_;
     double s_max_;
     double t_goal_;
-    double s_goal_;
     double v_goal_;
     double dt_;
     double max_acc_;
