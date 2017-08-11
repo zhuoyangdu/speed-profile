@@ -107,44 +107,47 @@ void PlanningNode::ParamConfig() {
         ros::param::get("~single_test/single_test_case", single_test_case);
         ros::param::get("~single_test/collision_number", collision_number);
 
-        std::vector<DynamicObstacle> dynamic_obstacles;
-        if (single_test_case == "emergency_stop") {
-            single_test_vehicle_.timestamp = 54000;
-            ros::param::get("~emergency_stop_case/x0", single_test_vehicle_.x);
-            ros::param::get("~emergency_stop_case/y0", single_test_vehicle_.y);
-            ros::param::get("~emergency_stop_case/theta0", single_test_vehicle_.theta);
-            ros::param::get("~emergency_stop_case/v0", single_test_vehicle_.velocity);
+        // Read init vehicle state.
+        single_test_vehicle_.timestamp = 54000;
+        ros::param::get("~" + single_test_case + "/x0", single_test_vehicle_.x);
+        ros::param::get("~" + single_test_case + "/y0", single_test_vehicle_.y);
+        ros::param::get("~" + single_test_case + "/theta0",
+                        single_test_vehicle_.theta);
+        ros::param::get("~" + single_test_case + "/v0",
+                        single_test_vehicle_.velocity);
 
-            if (collision_number == 0) {
-                std::cout << "No obstacle in single test." << std::endl;
-            } else if (collision_number == 1 || collision_number == 2) {
+        // Read dynamic obstacles.
+        std::vector<DynamicObstacle> dynamic_obstacles;
+        if (collision_number == 0) {
+            std::cout << "No obstacle in single test." << std::endl;
+        } else if (collision_number == 1 || collision_number == 2) {
+            DynamicObstacle obs;
+            obs.id = "obs1";
+            ros::param::get("~" + single_test_case + "/obs1_x0", obs.x);
+            ros::param::get("~" + single_test_case + "/obs1_y0", obs.y);
+            ros::param::get("~" + single_test_case + "/obs1_theta0", obs.theta);
+            ros::param::get("~" + single_test_case + "/obs1_v0", obs.velocity);
+            dynamic_obstacles.push_back(obs);
+            if (collision_number == 2) {
                 DynamicObstacle obs;
-                obs.id = "obs1";
-                ros::param::get("~emergency_stop_case/obs1_x0", obs.x);
-                ros::param::get("~emergency_stop_case/obs1_y0", obs.y);
-                ros::param::get("~emergency_stop_case/obs1_theta0", obs.theta);
-                ros::param::get("~emergency_stop_case/obs1_v0", obs.velocity);
+                obs.id = "obs2";
+                ros::param::get("~" + single_test_case + "/obs2_x0", obs.x);
+                ros::param::get("~" + single_test_case + "/obs2_y0", obs.y);
+                ros::param::get("~" + single_test_case + "/obs2_theta0", obs.theta);
+                ros::param::get("~" + single_test_case + "/obs2_v0", obs.velocity);
                 dynamic_obstacles.push_back(obs);
-                if (collision_number == 2) {
-                    DynamicObstacle obs;
-                    obs.id = "obs2";
-                    ros::param::get("~emergency_stop_case/obs2_x0", obs.x);
-                    ros::param::get("~emergency_stop_case/obs2_y0", obs.y);
-                    ros::param::get("~emergency_stop_case/obs2_theta0", obs.theta);
-                    ros::param::get("~emergency_stop_case/obs2_v0", obs.velocity);
-                    dynamic_obstacles.push_back(obs);
-                }
-            } else {
-                ROS_ERROR("The number of obstacle is out of range.");
             }
+        } else {
+            ROS_ERROR("The number of obstacle is out of range.");
         }
+        // }
         single_test_obstacles_ = dynamic_obstacles;
         std::cout << "Single test case:" << single_test_case << std::endl;
         std::cout << "Initial state:" << std::endl;
         std::cout << "  vehicle state: " << single_test_vehicle_.x << ", " <<
                   single_test_vehicle_.y << ", " << single_test_vehicle_.theta << ", " <<
                   single_test_vehicle_.velocity << std::endl;
-        std::cout << "Obstacles: " <<  collision_number << "in total" << std::endl;
+        std::cout << "Obstacles: " <<  collision_number << " in total" << std::endl;
         for (int i = 0; i < collision_number; i++) {
             std::cout << "   obstacle " << i + 1 << ": " << dynamic_obstacles[i].x << ", "
                       << dynamic_obstacles[i].y << ", " << dynamic_obstacles[i].theta <<
