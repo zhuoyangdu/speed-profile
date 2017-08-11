@@ -1,8 +1,8 @@
 #include "planning_node.h"
 
-namespace planning{
+namespace planning {
 
-PlanningNode::PlanningNode(const ros::NodeHandle& nh){
+PlanningNode::PlanningNode(const ros::NodeHandle& nh) {
 
     ros::param::get("~single", single_test_);
     ros::param::get("~planning_path", planning_path_);
@@ -23,21 +23,21 @@ PlanningNode::PlanningNode(const ros::NodeHandle& nh){
     rrt_ptr_ = std::move(std::unique_ptr<RRT> (new RRT));
 }
 
-void PlanningNode::Start(){
+void PlanningNode::Start() {
     pub_trajectory_ =
         nh_.advertise<planning::Trajectory>("/planning/trajectory", rate_);
     sub_vehicle_state_ =
         nh_.subscribe("/simulation/localize", vehicle_state_queue_size_,
-        &PlanningNode::VehicleStateCallback, this);
+                      &PlanningNode::VehicleStateCallback, this);
     sub_obstacle_ =
         nh_.subscribe("/simulation/obstacles", obstacles_queue_size_,
-        &PlanningNode::ObstacleCallback, this);
+                      &PlanningNode::ObstacleCallback, this);
     ros::Rate loop_rate(rate_);
 
-    if(!single_test_){
-        while(ros::ok()) {
+    if (!single_test_) {
+        while (ros::ok()) {
             ros::spinOnce();
-            if(localize_ready_ && obstacle_ready_) {
+            if (localize_ready_ && obstacle_ready_) {
                 planning::Trajectory trajectory;
                 rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                              curve_x_, curve_y_, &trajectory);
@@ -78,12 +78,12 @@ void PlanningNode::Start(){
     }
 }
 
-void PlanningNode::VehicleStateCallback(const planning::Pose& localize){
+void PlanningNode::VehicleStateCallback(const planning::Pose& localize) {
     vehicle_state_ = localize;
     localize_ready_ = true;
 }
 
-void PlanningNode::ObstacleCallback(const planning::ObstacleMap& obstacle_map){
+void PlanningNode::ObstacleCallback(const planning::ObstacleMap& obstacle_map) {
     obstacle_map_ = obstacle_map;
     obstacle_ready_ = true;
 }
@@ -94,7 +94,7 @@ void SplitString(const std::string& s, const std::string& c,
     pos2 = s.find(c);
     pos1 = 0;
     while (std::string::npos != pos2) {
-        v->push_back(s.substr(pos1, pos2-pos1));
+        v->push_back(s.substr(pos1, pos2 - pos1));
         pos1 = pos2 + c.size();
         pos2 = s.find(c, pos1);
     }
@@ -102,21 +102,21 @@ void SplitString(const std::string& s, const std::string& c,
         v->push_back(s.substr(pos1));
 }
 
-void PlanningNode::GetGeometryPath(){
-    std::vector<double> xs,ys;
+void PlanningNode::GetGeometryPath() {
+    std::vector<double> xs, ys;
     std::string line;
     std::string file_name = planning_path_ + "/data/RoadXY.txt";
     std::ifstream file(file_name);
-    if(file.is_open()){
+    if (file.is_open()) {
         ROS_INFO("reading road config.");
         int i;
-        while(getline(file, line)){
+        while (getline(file, line)) {
             std::vector<std::string> ps;
             SplitString(line, "\t", &ps);
-            if(ps.size()<3){
+            if (ps.size() < 3) {
                 continue;
             }
-            double x,y;
+            double x, y;
             x = atof(ps[0].c_str());
             y = atof(ps[1].c_str());
             xs.push_back(x);
@@ -129,12 +129,12 @@ void PlanningNode::GetGeometryPath(){
     double path_length;
     //Spline::fitCurve();
     Spline::fitCurve(xs, ys, &curve_x_, &curve_y_, &path_length);
-    
+
 }
 
 } // namespace planning
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
     ros::init(argc, argv, "planning_node");
     ros::NodeHandle nh;
     planning::PlanningNode planning_node(nh);

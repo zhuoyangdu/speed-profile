@@ -8,9 +8,9 @@
 #include "planning/DynamicObstacle.h"
 #include "planning/ObstacleMap.h"
 
-namespace planning{
-class Obstacles{
-public:
+namespace planning {
+class Obstacles {
+  public:
     Obstacles();
 
     void SetObstacles(const planning::ObstacleMap& obstacle_map);
@@ -28,7 +28,7 @@ public:
 
     bool DistanceCheck(const Node& node);
 
-private:
+  private:
     std::vector<planning::DynamicObstacle> obstacles_;
     std::vector<std::vector<double>> distance_map_;
     double danger_distance_;

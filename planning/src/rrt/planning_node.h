@@ -13,17 +13,17 @@
 #include "planning/DynamicObstacle.h"
 #include "planning/ObstacleMap.h"
 
-namespace planning{
-class PlanningNode{
-public:
+namespace planning {
+class PlanningNode {
+  public:
     PlanningNode(const ros::NodeHandle& nh);
 
     void Start();
-private:
+  private:
     void VehicleStateCallback(const planning::Pose& localize);
     void ObstacleCallback(const planning::ObstacleMap& obstacle_map);
     void GetGeometryPath();
-private:
+  private:
     ros::NodeHandle nh_;
     ros::Publisher pub_trajectory_;
     ros::Subscriber sub_vehicle_state_;
@@ -59,7 +59,7 @@ private:
     Spline curve_y_;
 
     std::string planning_path_;
-    };
+};
 }
 
 #endif //PLANNING_SRC_PLANNING_NODE_H_

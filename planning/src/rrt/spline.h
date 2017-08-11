@@ -11,21 +11,21 @@ namespace planning {
 
 // band matrix solver
 class band_matrix {
-private:
+  private:
     std::vector< std::vector<double> > m_upper;  // upper band
     std::vector< std::vector<double> > m_lower;  // lower band
 
-public:
+  public:
     band_matrix() {}                             // constructor
     band_matrix(int dim, int n_u, int n_l);       // constructor
     ~band_matrix() {}                            // destructor
     void resize(int dim, int n_u, int n_l);      // init with dim,n_u,n_l
     int dim() const;                             // matrix dimension
     int num_upper() const {
-        return m_upper.size()-1;
+        return m_upper.size() - 1;
     }
     int num_lower() const {
-        return m_lower.size()-1;
+        return m_lower.size() - 1;
     }
     // access operator
     double & operator () (int i, int j);            // write
@@ -43,7 +43,7 @@ public:
 
 // spline interpolation
 class Spline {
-public:
+  public:
     enum bd_type {
         first_deriv = 1,
         second_deriv = 2
@@ -65,11 +65,11 @@ public:
 
     // optional, but if called it has to come be before setPoints()
     void setBoundary(bd_type left, double left_value,
-                      bd_type right, double right_value,
-                      bool force_linear_extrapolation = false);
+                     bd_type right, double right_value,
+                     bool force_linear_extrapolation = false);
 
     void setPoints(const std::vector<double>& x,
-                    const std::vector<double>& y, bool cubic_spline = true);
+                   const std::vector<double>& y, bool cubic_spline = true);
 
     double operator() (double x) const;
     double deriv1(double x) const;

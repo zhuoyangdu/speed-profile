@@ -7,7 +7,7 @@
 namespace planning {
 
 class Node {
- public:
+  public:
     explicit Node(double t = -1, double dis = -1, int s_id = -1) {
         time = t;
         distance = dis;
@@ -19,12 +19,12 @@ class Node {
 
     void print_node() {
         std::cout << "time:" << time << " distance:" << distance <<
-            " vel:" << velocity << " self_id:" << self_id <<
-            " parent_id:" << parent_id << " cost:" << cost[0] <<
-            "," << cost[1] << "," << cost[2] << std::endl;
+                  " vel:" << velocity << " self_id:" << self_id <<
+                  " parent_id:" << parent_id << " cost:" << cost[0] <<
+                  "," << cost[1] << "," << cost[2] << std::endl;
     }
 
- public:
+  public:
     double time;
     double distance;
     double velocity;

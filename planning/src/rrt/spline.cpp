@@ -34,7 +34,7 @@ int band_matrix::dim() const {
 // defines the new operator (), so that we can access the elements
 // by A(i,j), index going from i=0,...,dim()-1
 double & band_matrix::operator () (int i, int j) {
-    int k = j-i;       // what band is the entry
+    int k = j - i;     // what band is the entry
     assert((i >= 0) && (i < dim()) && (j >= 0) && (j < dim()));
     assert((-num_lower() <= k) && (k <= num_upper()));
     // k=0 -> diogonal, k<0 lower left part, k>0 upper right part
@@ -42,7 +42,7 @@ double & band_matrix::operator () (int i, int j) {
     else        return m_lower[-k][i];
 }
 double band_matrix::operator () (int i, int j) const {
-    int k = j-i;       // what band is the entry
+    int k = j - i;     // what band is the entry
     assert((i >= 0) && (i < dim()) && (j >= 0) && (j < dim()));
     assert((-num_lower() <= k) && (k <= num_upper()));
     // k=0 -> diogonal, k<0 lower left part, k>0 upper right part
@@ -119,7 +119,7 @@ std::vector<double> band_matrix::r_solve(const std::vector<double>& b) const {
         sum = 0;
         j_stop = std::min(this->dim() - 1, i + this->num_upper());
         for (int j = i + 1; j <= j_stop; j++) sum +=
-            this->operator()(i, j) * x[j];
+                this->operator()(i, j) * x[j];
         x[i] = (b[i] - sum) / this->operator()(i, i);
     }
     return x;
@@ -153,7 +153,7 @@ void Spline::setBoundary(Spline::bd_type left, double left_value,
 
 
 void Spline::setPoints(const std::vector<double>& x,
-                        const std::vector<double>& y, bool cubic_spline) {
+                       const std::vector<double>& y, bool cubic_spline) {
     assert(x.size() == y.size());
     assert(x.size() > 2);
     m_x = x;
@@ -170,11 +170,11 @@ void Spline::setPoints(const std::vector<double>& x,
         band_matrix A(n, 1, 1);
         std::vector<double> rhs(n);
         for (int i = 1; i < n - 1; i++) {
-            A(i, i-1) = 1.0 / 3.0 * (x[i] - x[i-1]);
-            A(i, i) = 2.0 / 3.0 * (x[i+1] - x[i-1]);
-            A(i, i+1) = 1.0 / 3.0 * (x[i+1] - x[i]);
-            rhs[i] = (y[i+1] - y[i]) / (x[i+1] - x[i]) -
-                     (y[i] - y[i-1]) / (x[i] - x[i-1]);
+            A(i, i - 1) = 1.0 / 3.0 * (x[i] - x[i - 1]);
+            A(i, i) = 2.0 / 3.0 * (x[i + 1] - x[i - 1]);
+            A(i, i + 1) = 1.0 / 3.0 * (x[i + 1] - x[i]);
+            rhs[i] = (y[i + 1] - y[i]) / (x[i + 1] - x[i]) -
+                     (y[i] - y[i - 1]) / (x[i] - x[i - 1]);
         }
         // boundary conditions
         if (m_left == Spline::second_deriv) {
@@ -193,17 +193,17 @@ void Spline::setPoints(const std::vector<double>& x,
         }
         if (m_right == Spline::second_deriv) {
             // 2*b[n-1] = f''
-            A(n-1, n-1) = 2.0;
-            A(n-1, n-2) = 0.0;
-            rhs[n-1] = m_right_value;
+            A(n - 1, n - 1) = 2.0;
+            A(n - 1, n - 2) = 0.0;
+            rhs[n - 1] = m_right_value;
         } else if (m_right == Spline::first_deriv) {
             // c[n-1] = f', needs to be re-expressed in terms of b:
             // (b[n-2]+2b[n-1])(x[n-1]-x[n-2])
             // = 3 (f' - (y[n-1]-y[n-2])/(x[n-1]-x[n-2]))
-            A(n-1, n-1) = 2.0 * (x[n-1]-x[n-2]);
-            A(n-1, n-2) = 1.0 * (x[n-1]-x[n-2]);
-            rhs[n-1] = 3.0 * (m_right_value - (y[n-1] - y[n-2]) /
-                       (x[n-1] - x[n-2]));
+            A(n - 1, n - 1) = 2.0 * (x[n - 1] - x[n - 2]);
+            A(n - 1, n - 2) = 1.0 * (x[n - 1] - x[n - 2]);
+            rhs[n - 1] = 3.0 * (m_right_value - (y[n - 1] - y[n - 2]) /
+                                (x[n - 1] - x[n - 2]));
         } else {
             assert(false);
         }
@@ -215,9 +215,9 @@ void Spline::setPoints(const std::vector<double>& x,
         m_a.resize(n);
         m_c.resize(n);
         for (int i = 0; i < n - 1; i++) {
-            m_a[i] = 1.0 / 3.0 * (m_b[i+1] - m_b[i]) / (x[i+1] - x[i]);
-            m_c[i] = (y[i+1] - y[i]) / (x[i+1] - x[i])
-                   - 1.0 / 3.0 * (2.0 * m_b[i] + m_b[i+1]) * (x[i+1] - x[i]);
+            m_a[i] = 1.0 / 3.0 * (m_b[i + 1] - m_b[i]) / (x[i + 1] - x[i]);
+            m_c[i] = (y[i + 1] - y[i]) / (x[i + 1] - x[i])
+                     - 1.0 / 3.0 * (2.0 * m_b[i] + m_b[i + 1]) * (x[i + 1] - x[i]);
         }
     } else {  // linear interpolation
         m_a.resize(n);
@@ -226,7 +226,7 @@ void Spline::setPoints(const std::vector<double>& x,
         for (int i = 0; i < n - 1; i++) {
             m_a[i] = 0.0;
             m_b[i] = 0.0;
-            m_c[i] = (m_y[i+1] - m_y[i]) / (m_x[i+1] - m_x[i]);
+            m_c[i] = (m_y[i + 1] - m_y[i]) / (m_x[i + 1] - m_x[i]);
         }
     }
 
@@ -236,12 +236,12 @@ void Spline::setPoints(const std::vector<double>& x,
 
     // for the right extrapolation coefficients
     // f_{n-1}(x) = b*(x-x_{n-1})^2 + c*(x-x_{n-1}) + y_{n-1}
-    double h = x[n-1] - x[n-2];
+    double h = x[n - 1] - x[n - 2];
     // m_b[n-1] is determined by the boundary condition
-    m_a[n-1] = 0.0;
-    m_c[n-1] = 3.0 * m_a[n-2] * h * h + 2.0 * m_b[n-2] * h + m_c[n-2];
+    m_a[n - 1] = 0.0;
+    m_c[n - 1] = 3.0 * m_a[n - 2] * h * h + 2.0 * m_b[n - 2] * h + m_c[n - 2];
     if (m_force_linear_extrapolation == true)
-        m_b[n-1] = 0.0;
+        m_b[n - 1] = 0.0;
 }
 
 double Spline::operator() (double x) const {
@@ -256,9 +256,9 @@ double Spline::operator() (double x) const {
     if (x < m_x[0]) {
         // extrapolation to the left
         interpol = (m_b0 * h + m_c0) * h + m_y[0];
-    } else if (x > m_x[n-1]) {
+    } else if (x > m_x[n - 1]) {
         // extrapolation to the right
-        interpol = (m_b[n-1] * h + m_c[n-1]) * h + m_y[n-1];
+        interpol = (m_b[n - 1] * h + m_c[n - 1]) * h + m_y[n - 1];
     } else {
         // interpolation
         interpol = ((m_a[idx] * h + m_b[idx]) * h + m_c[idx]) * h + m_y[idx];
@@ -278,9 +278,9 @@ double Spline::deriv1(double x) const {
     if (x < m_x[0]) {
         // extrapolation to the left
         interpol = 2 * m_b0 * h + m_c0;
-    } else if (x > m_x[n-1]) {
+    } else if (x > m_x[n - 1]) {
         // extrapolation to the right
-        interpol = 2 * m_b[n-1] * h + m_c[n-1];
+        interpol = 2 * m_b[n - 1] * h + m_c[n - 1];
     } else {
         // interpolation
         interpol = (3 * m_a[idx] * h + 2 * m_b[idx]) * h + m_c[idx];
@@ -293,16 +293,16 @@ double Spline::deriv2(double x) const {
     // find the closest point m_x[idx] < x, idx=0 even if x<m_x[0]
     std::vector<double>::const_iterator it;
     it = std::lower_bound(m_x.begin(), m_x.end(), x);
-    int idx = std::max(static_cast<int>(it - m_x.begin()) -1, 0);
+    int idx = std::max(static_cast<int>(it - m_x.begin()) - 1, 0);
 
     double h = x - m_x[idx];
     double interpol;
     if (x < m_x[0]) {
         // extrapolation to the left
         interpol = 2 * m_b0;
-    } else if (x > m_x[n-1]) {
+    } else if (x > m_x[n - 1]) {
         // extrapolation to the right
-        interpol = 2 * m_b[n-1];
+        interpol = 2 * m_b[n - 1];
     } else {
         // interpolation
         interpol = 6 * m_a[idx] * h + 2 * m_b[idx];
@@ -319,7 +319,7 @@ void Spline::interpolateAscendingPoints(
 
     for (it_x = xs.begin(); it_x < it_x_end; it_x++) {
         double x = *(it_x);
-        std::vector<double>::const_iterator it_begin = it-1;
+        std::vector<double>::const_iterator it_begin = it - 1;
         if (it_begin < xs.begin()) {
             it_begin = xs.begin();
         }
@@ -331,9 +331,9 @@ void Spline::interpolateAscendingPoints(
         if (x < m_x[0]) {
             // extrapolation to the left
             y = (m_b0 * h + m_c0) * h + m_y[0];
-        } else if (x > m_x[n-1]) {
+        } else if (x > m_x[n - 1]) {
             // extrapolation to the right
-            y = (m_b[n-1] * h + m_c[n-1]) * h + m_y[n-1];
+            y = (m_b[n - 1] * h + m_c[n - 1]) * h + m_y[n - 1];
         } else {
             // interpolation
             y = ((m_a[idx] * h + m_b[idx]) * h + m_c[idx]) * h + m_y[idx];
@@ -345,7 +345,7 @@ void Spline::interpolateAscendingPoints(
 void Spline::getRange(double* min_x, double* max_x) const {
     int size = m_x.size();
     *min_x = m_x[0];
-    *max_x = m_x[size-1];
+    *max_x = m_x[size - 1];
 }
 
 double computeDist(double x0, double y0,
@@ -398,7 +398,7 @@ void Spline::getClosestPointOnCurve(const Spline& curve_x,
         y_deriv2_s = curve_y.deriv2(*s);
         D_deriv1 = 2 * ((x_s - x0) * x_deriv1_s + (y_s - y0) * y_deriv1_s);
         D_deriv2 = 2 * (x_deriv1_s * x_deriv1_s + (x_s - x0) * x_deriv2_s +
-                   y_deriv1_s * y_deriv1_s + (y_s - y0) * y_deriv2_s);
+                        y_deriv1_s * y_deriv1_s + (y_s - y0) * y_deriv2_s);
         if (D_deriv2 < 1e-6) {
             delta_s = D_deriv1;
         } else {
@@ -416,11 +416,11 @@ void Spline::getClosestPointOnCurve(const Spline& curve_x,
 }
 
 void Spline::getClosestPointOnCurveWithExtension(
-        const Spline& curve_x, const Spline& curve_y,
-        double x0, double y0,
-        double* s, double* dist,
-        int max_iteration, double converge_threshold,
-        bool use_bisection, double bisection_threshold) {
+    const Spline& curve_x, const Spline& curve_y,
+    double x0, double y0,
+    double* s, double* dist,
+    int max_iteration, double converge_threshold,
+    bool use_bisection, double bisection_threshold) {
     double min_s, max_s, mid_s;
     double dist_min_s, dist_max_s, dist_mid_s;
     curve_x.getRange(&min_s, &max_s);
@@ -453,7 +453,7 @@ void Spline::getClosestPointOnCurveWithExtension(
         y_deriv2_s = curve_y.deriv2(*s);
         D_deriv1 = 2 * ((x_s - x0) * x_deriv1_s + (y_s - y0) * y_deriv1_s);
         D_deriv2 = 2 * (x_deriv1_s * x_deriv1_s + (x_s - x0) * x_deriv2_s +
-                   y_deriv1_s * y_deriv1_s + (y_s - y0) * y_deriv2_s);
+                        y_deriv1_s * y_deriv1_s + (y_s - y0) * y_deriv2_s);
         if (D_deriv2 < 1e-6) {
             delta_s = D_deriv1;
         } else {
@@ -480,7 +480,7 @@ void Spline::fitCurve(const std::vector<double>& xs,
 
     for (int i = 1; i < pts; i++) {
         double x = xs[i], y = ys[i];
-        double x_pre = xs[i-1], y_pre = ys[i-1];
+        double x_pre = xs[i - 1], y_pre = ys[i - 1];
         double local_length = sqrt(pow(x - x_pre, 2) + pow(y - y_pre, 2));
         *length  += local_length;
         lengths.push_back(*length);

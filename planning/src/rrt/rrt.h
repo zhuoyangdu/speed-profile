@@ -18,10 +18,10 @@
 #include "planning/DynamicObstacle.h"
 #include "planning/ObstacleMap.h"
 
-namespace planning{
+namespace planning {
 
-class RRT{
-public:
+class RRT {
+  public:
     RRT();
 
     void GenerateTrajectory(const planning::Pose& vehicle_state,
@@ -30,7 +30,7 @@ public:
                             const Spline& curve_y,
                             planning::Trajectory* trajectory);
 
-private:
+  private:
     double GetGeometryPathLength(double x, double y);
 
     Node RandomSample(double s0);
@@ -80,7 +80,7 @@ private:
     std::string int2string(int value);
 
     void newFile();
-private:
+  private:
 
     Obstacles obstacles;
     std::vector<Node> tree_;
