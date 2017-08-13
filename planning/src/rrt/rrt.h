@@ -85,6 +85,8 @@ class RRT {
 
     Obstacles obstacles;
     std::vector<Node> tree_;
+    double max_tree_t_ = 0;
+
     Spline curve_x_;
     Spline curve_y_;
     int is_rand_ = 0;
@@ -119,6 +121,8 @@ class RRT {
     int un_vel = 0;
     int un_acc = 0;
     int un_collision = 0;
+    int choose_par_un_feasible = 0;
+    int rewire_un_feasible = 0;
 
 };
 

@@ -112,6 +112,8 @@ void Obstacles::InitializeDistanceMap(
                 double dis = sqrt(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
                                   2));
                 if (ss > dis) ss = dis;
+                // cout << "t:" << t << ", s:" << s << ", obs_x:" << obs_pos_x << "obs_y:" << obs_pos_y
+                 //   << "veh:" << vehicle_x << "," << vehicle_y << endl;
             }
             distance_map_[i][j] = ss;
         }
@@ -138,6 +140,12 @@ void Obstacles::recordDistanceMap() {
     int ns = static_cast<int>(s_max_ / kDeltaS) + 1;
     std::string file_name_ = planning_path_ + "/log/distance_map.txt";
     std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
+    out_file_ << init_vehicle_path_length_ << "\t";
+    for(int j = 1; j <=ns; j++){
+        out_file_ << 0 << "\t";
+    }
+    out_file_ << "\n";
+
     for (int i = 0; i <= nt; i++) {
         for (int j = 0; j <= ns; j++) {
             double t = i * kDeltaT;

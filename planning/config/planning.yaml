@@ -1,11 +1,11 @@
 single : True
 rrt/max_failed_attemptes : 10000
-rrt/t_max : 8
+rrt/t_max : 5
 rrt/s_max : 60
-rrt/t_goal : 5
+rrt/t_goal : 3
 rrt/v_goal : 10
 rrt/dt : 0.1
-rrt/max_acc : 5
+rrt/max_acc : 10
 rrt/max_vel : 15
 rrt/kr : 1
 rrt/ks : 1
@@ -30,7 +30,7 @@ emergency_stop_case/y0 : 497.5
 emergency_stop_case/theta0 : 1.570
 emergency_stop_case/v0 : 10
 emergency_stop_case/obs1_x0 : 550
-emergency_stop_case/obs1_y0 : 497.5.5
+emergency_stop_case/obs1_y0 : 497.5
 emergency_stop_case/obs1_theta0 : 1.570
 emergency_stop_case/obs1_v0 : 0
 
@@ -43,18 +43,18 @@ croosing_case/obs1_y0 : 502.5
 croosing_case/obs1_theta0 : 4.712
 croosing_case/obs1_v0 : 0
 
-keep_lane_case/x0 : 400
-keep_lane_case/y0 : 502.5
-keep_lane_case/theta0 : 4.712
+keep_lane_case/x0 : 540
+keep_lane_case/y0 : 497.5
+keep_lane_case/theta0 : 1.570
 keep_lane_case/v0 : 10
-keep_lane_case/obs1_x0 : 360
-keep_lane_case/obs1_y0 : 502.5
-keep_lane_case/obs1_theta0 : 4.712
-keep_lane_case/obs1_v0 : 0
-keep_lane_case/obs2_x0 : 360
-keep_lane_case/obs2_y0 : 502.5
-keep_lane_case/obs2_theta0 : 4.712
-keep_lane_case/obs2_v0 : 0
+keep_lane_case/obs1_x0 : 520
+keep_lane_case/obs1_y0 : 497.5
+keep_lane_case/obs1_theta0 : 1.570
+keep_lane_case/obs1_v0 : 11
+keep_lane_case/obs2_x0 : 570
+keep_lane_case/obs2_y0 : 497.5
+keep_lane_case/obs2_theta0 : 1.570
+keep_lane_case/obs2_v0 : 12
 
 
 
