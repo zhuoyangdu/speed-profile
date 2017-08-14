@@ -1,15 +1,15 @@
 single : True
 rrt/max_failed_attemptes : 10000
-rrt/t_max : 5
-rrt/s_max : 60
-rrt/t_goal : 3
+rrt/t_max : 8
+rrt/s_max : 100
+rrt/t_goal : 5
 rrt/v_goal : 10
 rrt/dt : 0.1
 rrt/max_acc : 10
 rrt/max_vel : 15
 rrt/kr : 1
-rrt/ks : 1
-rrt/kv : 2
+rrt/ks : 2
+rrt/kv : 10
 rrt/lower_range_t : 1
 rrt/lower_range_s : 10
 rrt/upper_range_t : 1
@@ -18,12 +18,12 @@ rrt/upper_range_a: 0.5
 rrt/lower_range_a: 0.5
 
 rrt/k_risk : 10
-rrt/danger_distance : 10
+rrt/danger_distance : 3
 rrt/safe_distance : 50
 rrt/car_width : 3
 
-single_test/single_test_case : 'keep_lane_case'
-single_test/collision_number : 2
+single_test/single_test_case : 'turn_left_case'
+single_test/collision_number : 1
 
 emergency_stop_case/x0 : 520
 emergency_stop_case/y0 : 497.5
@@ -33,15 +33,27 @@ emergency_stop_case/obs1_x0 : 550
 emergency_stop_case/obs1_y0 : 497.5
 emergency_stop_case/obs1_theta0 : 1.570
 emergency_stop_case/obs1_v0 : 0
+emergency_stop_case/road_file : 'L1L3.txt'
 
-croosing_case/x0 : 400
-croosing_case/y0 : 502.5
-croosing_case/theta0 : 4.712
-croosing_case/v0 : 10
-croosing_case/obs1_x0 : 360
-croosing_case/obs1_y0 : 502.5
-croosing_case/obs1_theta0 : 4.712
-croosing_case/obs1_v0 : 0
+crossing_case/x0 : 502.5
+crossing_case/y0 : 480
+crossing_case/theta0 : 0
+crossing_case/v0 : 10
+crossing_case/obs1_x0 : 480
+crossing_case/obs1_y0 : 497.5
+crossing_case/obs1_theta0 : 1.570
+crossing_case/obs1_v0 : 10
+crossing_case/road_file : 'L7L6.txt'
+
+turn_left_case/x0 : 502.5
+turn_left_case/y0 : 480
+turn_left_case/theta0 : 0
+turn_left_case/v0 : 6
+turn_left_case/obs1_x0 : 470
+turn_left_case/obs1_y0 : 497.5
+turn_left_case/obs1_theta0 : 1.570
+turn_left_case/obs1_v0 : 5
+turn_left_case/road_file : 'L7L2.txt'
 
 keep_lane_case/x0 : 540
 keep_lane_case/y0 : 497.5
@@ -55,6 +67,7 @@ keep_lane_case/obs2_x0 : 570
 keep_lane_case/obs2_y0 : 497.5
 keep_lane_case/obs2_theta0 : 1.570
 keep_lane_case/obs2_v0 : 12
+keep_lane_case/road_file : 'L1L3.txt'
 
 
 

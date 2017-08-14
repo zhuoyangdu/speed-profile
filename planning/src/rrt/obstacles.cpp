@@ -112,6 +112,11 @@ void Obstacles::InitializeDistanceMap(
                 double dis = sqrt(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
                                   2));
                 if (ss > dis) ss = dis;
+                if(t==0){
+                    cout << "s:" << s << ",obs_pos:" << obs_pos_x << "," << obs_pos_y <<
+                        ",vehicle:" << vehicle_x << "," << vehicle_y << ", dis:" << dis << ",ss:"
+                        << ss << endl;
+                }
                 // cout << "t:" << t << ", s:" << s << ", obs_x:" << obs_pos_x << "obs_y:" << obs_pos_y
                  //   << "veh:" << vehicle_x << "," << vehicle_y << endl;
             }

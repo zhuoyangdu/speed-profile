@@ -31,6 +31,7 @@ class PlanningNode {
 
     bool single_test_ = true;
     double rate_ = 1;
+    std::string road_file_;
 
     std::vector<DynamicObstacle> single_test_obstacles_;
     planning::Pose single_test_vehicle_;

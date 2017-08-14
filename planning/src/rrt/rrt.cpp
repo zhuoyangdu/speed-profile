@@ -155,23 +155,23 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                 cout << "path cost:" << "sum:" << cost_sum << "," << path_cost[0] << "," <<
                      path_cost[1] << "," << path_cost[2] << endl;
                 // PrintNodes(path);
-                if (n_path > 30) {
+                if (n_path > 100) {
                     cout << "The final path is:" << endl;
                     PrintNodes(min_path);
                     cout << "The cost of the final path is:" << min_cost << endl;
-                    std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
-                    out_file_ << "final_path\n";
-                    for (int i = 0; i < min_path.size(); i++) {
-                        out_file_ << min_path[i].time << "\t" << min_path[i].distance << "\t" <<
-                                  min_path[i].velocity << "\n";
-                    }
-                    out_file_ << "end_path\n";
                     break;
                 }
             }
         }
     }
 
+    // std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
+    out_file_ << "final_path\n";
+    for (int i = 0; i < min_path.size(); i++) {
+        out_file_ << min_path[i].time << "\t" << min_path[i].distance << "\t" <<
+                  min_path[i].velocity << "\n";
+    }
+    out_file_ << "end_path\n";
     // std::ofstream out_file_(file_name_.c_str(), std::ios::in|std::ios::app);
     out_file_ << "tree\n";
     for (int i = 0; i < tree_.size(); i++) {
@@ -336,7 +336,7 @@ void RRT::GetNearestNode(const Node& sample,
             if (vel > max_vel_ || fabs(acc) > max_acc_) {
                 dist.push_back(10000);
             } else {
-                dist.push_back(fabs(acc));
+                dist.push_back(fabs(acc) + delta_t);
             }
         }
         // cout << "dist:" << dist[i] << endl;
@@ -390,10 +390,8 @@ bool RRT::VertexFeasible(const Node& parent_node, const Node& child_node) {
         un_vel += 1;
         return false;
     }
-    double acc1 = (parent_node.velocity - vel) / (parent_node.time -
-                  child_node.time);
-    double acc = ComputeAcceleration(parent_node, child_node);
 
+    double acc = ComputeAcceleration(parent_node, child_node);
     if (fabs(acc) > max_acc_) {
         un_acc += 1;
         return false;
@@ -427,15 +425,27 @@ std::vector<double> RRT::GetPathCost(const std::deque<Node>& path) {
 }
 
 double RRT::GetPathSmoothness(const std::deque<Node>& path) {
+    double sum_abs_acc = 0;
     double sum_acc = 0;
+    std::vector<double> vector_acc;
     for (int i = 1; i < path.size(); i++) {
         double acc = (path[i].velocity - path[i - 1].velocity) /
                      (path[i].time - path[i - 1].time);
-        sum_acc = sum_acc + fabs(acc);
+        vector_acc.push_back(acc);
+        sum_acc = sum_acc + acc;
+        sum_abs_acc = sum_abs_acc + fabs(acc);
     }
+
     double min_acc = fabs((path.front().velocity - path.back().velocity)
                           / (path.front().time - path.back().time));
-    return sum_acc / min_acc;
+    double average_acc = sum_acc / vector_acc.size();
+    double variance_acc = 0;
+    for (int i = 0; i < vector_acc.size(); i++){
+        variance_acc = variance_acc + abs(vector_acc[i] - average_acc);
+    }
+    variance_acc = abs(variance_acc)/vector_acc.size() * 10;
+
+    return sum_abs_acc / min_acc + variance_acc;
 }
 
 double RRT::GetPathVelError(const std::deque<Node>& path) {

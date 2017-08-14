@@ -71,7 +71,7 @@ void SplitString(const std::string& s, const std::string& c,
 void PlanningNode::GetGeometryPath() {
     std::vector<double> xs, ys;
     std::string line;
-    std::string file_name = planning_path_ + "/data/RoadXY.txt";
+    std::string file_name = planning_path_ + "/data/path/" + road_file_;
     std::ifstream file(file_name);
     if (file.is_open()) {
         ROS_INFO("Reading road config.");
@@ -115,6 +115,7 @@ void PlanningNode::ParamConfig() {
                         single_test_vehicle_.theta);
         ros::param::get("~" + single_test_case + "/v0",
                         single_test_vehicle_.velocity);
+        ros::param::get("~" + single_test_case + "/road_file", road_file_);
 
         // Read dynamic obstacles.
         std::vector<DynamicObstacle> dynamic_obstacles;

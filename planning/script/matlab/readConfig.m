@@ -1,4 +1,4 @@
-road = load('../../data/RoadXY.txt');
+% road = load('../../data/RoadXY.txt');
 fid = fopen('../../config/planning.yaml');
 yaml = textscan(fid, '%s%s%s', 'EndOfLine', '\n');
 name = yaml{1,1};
@@ -12,6 +12,10 @@ single_case = single_case(2:end-1);
 index = ismember(name,'single_test/collision_number');
 collision_number = str2double(value{index});
 
+index = ismember(name,[single_case,'/road_file']);
+road_path = ['../../data/path/', value{index}(2:end-1)];
+road = load(road_path);
+    
 index = ismember(name,[single_case,'/x0']);
 veh_x0 = str2double(value{index});
 index = ismember(name,[single_case,'/y0']);
@@ -63,4 +67,6 @@ s_max = str2double(value{index});
 
 index = ismember(name,'rrt/danger_distance');
 danger_distance = str2double(value{index});
+
+
 

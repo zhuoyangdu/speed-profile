@@ -20,7 +20,7 @@ while 1
         while 1
             tline = fgetl(log_file);
             if strcmp(tline, 'end_tree'), break; end
-            sline = str2double(strsplit(tline, '\t'))
+            sline = str2double(strsplit(tline, '\t'));
             tree = [tree; sline];
         end
         plot_tree(tree);
