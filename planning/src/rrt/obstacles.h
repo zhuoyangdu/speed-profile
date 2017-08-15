@@ -29,7 +29,7 @@ class Obstacles {
                                const Spline& curve_y,
                                double s0);
 
-    bool DistanceCheck(const Node& node);
+    double ReadDistanceMap(const Node& node);
 
     double ComputeTTC(double node_time, double node_distance,
                       double node_vel,
@@ -54,6 +54,7 @@ class Obstacles {
     double collision_distance_;
     double t_max_;
     double s_max_;
+    double safe_ttc_;
     double NonlinearRisk(double input);
     double init_vehicle_path_length_;
     double epsilon_ = 1e3;

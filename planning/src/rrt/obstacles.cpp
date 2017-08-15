@@ -10,6 +10,7 @@ Obstacles::Obstacles() {
     ros::param::get("~rrt/s_max", s_max_);
     ros::param::get("~rrt/collision_distance", collision_distance_);
     ros::param::get("~planning_path", planning_path_);
+    ros::param::get("~rrt/safe_ttc", safe_ttc_);
 }
 
 void Obstacles::SetObstacles(const planning::ObstacleMap& obstacle_map) {
@@ -32,7 +33,7 @@ bool Obstacles::CollisionFree(const Node& parent_node, const Node& child_node,
             double dist = sqrt(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
                                2));
             t = t + 0.1;
-            if (dist < danger_distance_) {
+            if (dist < collision_distance_) {
                 return false;
             }
         }
@@ -48,31 +49,28 @@ double Obstacles::NonlinearRisk(double input) {
 
 double Obstacles::RiskAssessment(const std::deque<Node>& path,
                                  const Spline& curve_x, const Spline& curve_y) {
+
     if (obstacles_.empty()) {
         return 0;
     }
-    std::vector<double> min_dis;
-    for (int i = 0; i < obstacles_.size(); i++) {
-        planning::DynamicObstacle obs = obstacles_[i];
-        std::vector<double> dis;
-        for (int i = 0; i < path.size(); i++) {
-            double vehicle_x = curve_x(path[i].distance);
-            double vehicle_y = curve_y(path[i].distance);
-            double obs_pos_x = obs.x + obs.velocity * path[i].time * sin(obs.theta);
-            double obs_pos_y = obs.y + obs.velocity * path[i].time * cos(obs.theta);
-            double ss = sqrt(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
-                             2));
-            // cout << "ss:" << ss << endl;
-            dis.push_back(ss);
+    double max_ttc = safe_ttc_;
+    for (int i = 0; i < path.size(); i++) {
+        double node_ttc = ComputeTTC(path[i].time, path[i].distance,
+                                     path[i].velocity, curve_x, curve_y);
+        if (node_ttc >= max_ttc) {
+            continue;
+        } else {
+            max_ttc = node_ttc;
         }
-        min_dis.push_back(*std::min_element(dis.begin(), dis.end()));
-        // cout << "min_dis:" << *std::min_element(dis.begin(), dis.end()) << endl;
     }
-    double min_min_dis = *std::min_element(min_dis.begin(), min_dis.end());
-    // cout << "min_min_dis:" << min_min_dis << endl;
-
-    double risk = NonlinearRisk(min_min_dis);
-    // cout << "risk:" << risk << endl;
+    double risk;
+    // cout << "safe_ttc:" << safe_ttc_ << ",max_ttc:" << max_ttc << endl;
+    if (max_ttc < safe_ttc_) {
+        risk = 1 / max_ttc;
+        // cout << "risk" << risk << endl;
+    } else {
+        risk = 0;
+    }
 
     return risk;
 }
@@ -105,7 +103,7 @@ void Obstacles::InitializeDistanceMap(
             double s = j * kDeltaS;
             double vehicle_x = curve_x(s + s0);
             double vehicle_y = curve_y(s + s0);
-            double ss = 10000;
+            double ss = safe_distance_;
             for (int k = 0; k < obstacles_.size(); k++) {
                 planning::DynamicObstacle obs = obstacles_[k];
                 double obs_pos_x = obs.x + obs.velocity * t * sin(obs.theta);
@@ -113,13 +111,6 @@ void Obstacles::InitializeDistanceMap(
                 double dis = sqrt(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
                                   2));
                 if (ss > dis) ss = dis;
-                if (t == 0) {
-                    cout << "s:" << s << ",obs_pos:" << obs_pos_x << "," << obs_pos_y <<
-                         ",vehicle:" << vehicle_x << "," << vehicle_y << ", dis:" << dis << ",ss:"
-                         << ss << endl;
-                }
-                // cout << "t:" << t << ", s:" << s << ", obs_x:" << obs_pos_x << "obs_y:" << obs_pos_y
-                //   << "veh:" << vehicle_x << "," << vehicle_y << endl;
             }
             distance_map_[i][j] = ss;
         }
@@ -151,11 +142,11 @@ double Obstacles::ComputeTTC(double node_time, double node_distance,
         return ttc;
     }
 
-    for (int tt = 0; tt < 10; tt++) {
-        double t = tt * 0.5 + node_time;
+    for (int tt = 0; tt < 5; tt++) {
+        double t = tt * 0.1;
         double veh_x = curve_x(node_distance + t * node_vel);
         double veh_y = curve_y(node_distance + t * node_vel);
-        double distance = EuclideanDisToObs(veh_x, veh_y, t);
+        double distance = EuclideanDisToObs(veh_x, veh_y, t+node_time);
         if (distance < collision_distance_) {
             ttc = t;
             break;
@@ -203,17 +194,16 @@ void Obstacles::ComputeTTCMap(double current_path_length,
     }
 }
 
-bool Obstacles::DistanceCheck(const Node& node) {
+double Obstacles::ReadDistanceMap(const Node& node) {
+    if (obstacles_.size() < 1) {
+        return safe_distance_;
+    }
     int index_t = static_cast<int>(node.time / kDeltaT);
     int index_s = static_cast<int>((node.distance - init_vehicle_path_length_) /
                                    kDeltaS);
     double dist = distance_map_[index_t][index_s];
 
-    if (dist < danger_distance_) {
-        return false;
-    } else {
-        return true;
-    }
+    return dist;
 }
 
 void Obstacles::recordDistanceMap() {

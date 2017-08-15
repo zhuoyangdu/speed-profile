@@ -25,6 +25,7 @@ RRT::RRT() {
     ros::param::get("~rrt/upper_range_a", upper_range_a_);
     ros::param::get("~rrt/k_risk", k_risk_);
     ros::param::get("~rrt/danger_distance", danger_distance_);
+    ros::param::get("~rrt/collision_distance", collision_distance_);
     ros::param::get("~rrt/safe_distance", safe_distance_);
     ros::param::get("~rrt/car_width", car_width_);
     ros::param::get("~planning_path", planning_path_);
@@ -116,7 +117,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
         // Sample.
         n_sample = n_sample + 1;
         Node sample = RandomSample(s0);
-        if (!obstacles.DistanceCheck(sample)) {
+        if (obstacles.ReadDistanceMap(sample) < collision_distance_) {
             continue;
         }
         std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
@@ -446,7 +447,7 @@ double RRT::GetPathSmoothness(const std::deque<Node>& path) {
     }
     variance_acc = abs(variance_acc)/vector_acc.size() * 10;
 
-    return sum_abs_acc / min_acc + variance_acc;
+    return variance_acc;
 }
 
 double RRT::GetPathVelError(const std::deque<Node>& path) {
@@ -454,7 +455,7 @@ double RRT::GetPathVelError(const std::deque<Node>& path) {
     for (int i = 0; i < path.size(); i++) {
         ev = ev + fabs(path[i].velocity - v_goal_) / v_goal_;
     }
-    return ev;
+    return ev/path.size();
 }
 
 std::vector<double> RRT::GetNodeCost(const Node& parent_node,
@@ -503,8 +504,7 @@ std::vector<Node> RRT::GetUpperRegion(const Node& node) {
                 && tree_[i].distance > node.distance) {
             double vel = ComputeVelocity(node, tree_[i]);
             double acc = ComputeAcceleration(node, tree_[i]);
-            if (fabs(acc) < lower_range_a_ && fabs(node.time - tree_[i].time) < 1
-                    && vel < max_vel_) {
+            if (fabs(acc) < lower_range_a_ && vel < max_vel_) {
                 near_region.push_back(tree_[i]);
             }
         }

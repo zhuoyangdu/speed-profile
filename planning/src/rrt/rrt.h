@@ -113,6 +113,7 @@ class RRT {
     double danger_distance_;
     double safe_distance_;
     double car_width_;
+    double collision_distance_;
 
     std::string planning_path_;
     std::string file_name_;
