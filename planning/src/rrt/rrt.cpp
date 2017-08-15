@@ -89,6 +89,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     // Initialize obstacles.
     obstacles.SetObstacles(obstacle_map);
     obstacles.InitializeDistanceMap(vehicle_state, curve_x_, curve_y_, s0);
+    obstacles.ComputeTTCMap(s0, curve_x_, curve_y_);
 
     // Initialize tree.
     double length = 0;

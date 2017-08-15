@@ -21,6 +21,7 @@ rrt/k_risk : 10
 rrt/danger_distance : 3
 rrt/safe_distance : 50
 rrt/car_width : 3
+rrt/collision_distance : 4.5
 
 single_test/single_test_case : 'turn_left_case'
 single_test/collision_number : 1
