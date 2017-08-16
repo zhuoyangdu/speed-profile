@@ -154,8 +154,8 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                     out_file_.close();
                 }
                 cout << "found " << n_path << " paths" << endl;
-                cout << "path cost:" << "sum:" << cost_sum << "," << path_cost[0] << "," <<
-                     path_cost[1] << "," << path_cost[2] << endl;
+                cout << "path cost:" << "sum:" << cost_sum << "," << kr_*path_cost[0] << "," <<
+                     ks_*path_cost[1] << "," << kv_*path_cost[2] << endl;
                 // PrintNodes(path);
                 if (n_path > 100) {
                     cout << "The final path is:" << endl;
@@ -193,14 +193,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
 
     if (n_path > 0) {
         std::deque<Node> smoothing_path = PostProcessing(min_path);
-        std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
-        out_file_ << "smoothing_path\n";
-        for (int i = 0; i < smoothing_path.size(); i++) {
-            out_file_ << smoothing_path[i].time << "\t" << smoothing_path[i].distance <<
-                      "\t" << smoothing_path[i].velocity << "\n";
-        }
-        out_file_ << "end_path\n";
-        out_file_.close();
+        SendVisualization(smoothing_path, curve_x_, curve_y_);
 
         std::vector<planning::Pose> poses;
         for (int i = 0; i < min_path.size(); i++) {
@@ -563,11 +556,11 @@ std::string RRT::int2string(int value) {
 std::deque<Node>  RRT::PostProcessing(std::deque<Node>& path) {
     std::deque<Node> full_path;
     for (int i = 0; i < path.size() - 1; i++) {
-        double n = 10*(path[i+1].time - path[i].time);
+        double n = 10 * (path[i + 1].time - path[i].time);
         // TODO: figure out the error.
         //cout << n << "path time:" << path[i+1].time << "," << path[i].time << endl;
         //cout << "n:" << n << "int n" << static_cast<int>(n) << endl;
-        for (int k = 0; k < n-0.5; k++) {
+        for (int k = 0; k < n - 0.5; k++) {
             Node node;
             node.time = path[i].time + k * dt_;
             node.distance = path[i].distance + path[i + 1].velocity * dt_ * k;
@@ -606,4 +599,37 @@ std::deque<Node>  RRT::PostProcessing(std::deque<Node>& path) {
                                       1].distance) / (smoothing_path[i].time - smoothing_path[i - 1].time);
     }
     return smoothing_path;
+}
+
+double getAngle(const Node& node, const Node& parent_node,
+                const Spline& curve_x, const Spline& curve_y){
+    double node_x = curve_x(node.distance);
+    double node_y = curve_y(node.distance);
+    double parent_x = curve_x(parent_node.distance);
+    double parent_y = curve_y(parent_node.distance);
+    double angle = atan2(node_x-parent_x, node_y-parent_y);
+    return angle;
+}
+
+void RRT::SendVisualization(const std::deque<Node>& smoothing_path,
+                            const Spline& curve_x,
+                            const Spline& curve_y) {
+    std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
+    out_file_ << "smoothing_path\n";
+    for (int i = 0; i < smoothing_path.size(); i++) {
+        out_file_ << smoothing_path[i].time << "\t" << smoothing_path[i].distance <<
+                  "\t" << smoothing_path[i].velocity << "\n";
+    }
+    out_file_ << "end_path\n";
+
+    out_file_ << "moving_vehicle\n";
+    for (int i = 0; i < 5; i++){
+        int k = i * 10;
+        double veh_x = curve_x(smoothing_path[k].distance);
+        double veh_y = curve_y_(smoothing_path[k].distance);
+        double angle = getAngle(smoothing_path[k+1], smoothing_path[k], curve_x, curve_y);
+        out_file_ << veh_x << "\t" << veh_y << "\t" << angle << "\n";
+    }
+    out_file_ << "end_vehicle\n";
+    out_file_.close();
 }

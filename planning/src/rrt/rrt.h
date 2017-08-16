@@ -126,6 +126,10 @@ class RRT {
     int rewire_un_feasible = 0;
 
     std::deque<Node>  PostProcessing(std::deque<Node>& path);
+    void SendVisualization(const std::deque<Node>& smoothing_path,
+                           const Spline& curve_x,
+                           const Spline& curve_y);
+
 };
 
 }

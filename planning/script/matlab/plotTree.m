@@ -1,5 +1,8 @@
 function plotTree(tree)
     figure(2);  
+    xlabel('t(s)');
+    ylabel('s(m)');
+    grid on;
     hold on;
     for i = 2:1:length(tree(:,1))
         cn = tree(i,:);
