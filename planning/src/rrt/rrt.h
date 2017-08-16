@@ -125,6 +125,7 @@ class RRT {
     int choose_par_un_feasible = 0;
     int rewire_un_feasible = 0;
 
+    std::deque<Node>  PostProcessing(std::deque<Node>& path);
 };
 
 }

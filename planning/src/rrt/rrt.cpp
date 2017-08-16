@@ -121,7 +121,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
             continue;
         }
         std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
-        out_file_ << "sample\t" << sample.time << "\t" << sample.distance << "\n";
+        // out_file_ << "sample\t" << sample.time << "\t" << sample.distance << "\n";
         // out_file_.close();
 
         // Extend.
@@ -182,21 +182,26 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     }
     out_file_ << "end_tree\n";
     out_file_.close();
-
     cout << "total attemps:" << n_sample << ", feasible sample:" << n_feasible <<
          endl;
-
     cout << "unvel:" << un_vel << ", unacc:" << un_acc << ", un_col:" <<
          un_collision << endl;
-
     cout << "choose_par_un_feasible:" << choose_par_un_feasible << "," <<
          "rewire_un_feasible:" << rewire_un_feasible << endl;
-    // cout << "tree:" << endl;
-    // PrintNodes(tree_);
     ends = clock();
     cout << "elapsed time:" << double(ends - start) / CLOCKS_PER_SEC << endl;
 
     if (n_path > 0) {
+        std::deque<Node> smoothing_path = PostProcessing(min_path);
+        std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
+        out_file_ << "smoothing_path\n";
+        for (int i = 0; i < smoothing_path.size(); i++) {
+            out_file_ << smoothing_path[i].time << "\t" << smoothing_path[i].distance <<
+                      "\t" << smoothing_path[i].velocity << "\n";
+        }
+        out_file_ << "end_path\n";
+        out_file_.close();
+
         std::vector<planning::Pose> poses;
         for (int i = 0; i < min_path.size(); i++) {
             planning::Pose pose;
@@ -330,10 +335,14 @@ void RRT::GetNearestNode(const Node& sample,
         double delta_s = sample.distance - tree_[i].distance;
         double delta_t = sample.time - tree_[i].time;
         // cout << "delta_s:"<< delta_s << " delta_t:"<< delta_t << endl;
-        if (delta_s < 0 || delta_t < 0) {
+
+        if (delta_s < -0.5 || delta_t < 0) {
             dist.push_back(10000);
         } else {
             double vel = delta_s / delta_t;
+            if (delta_s <= 0) {
+                vel = 0;
+            }
             double acc = (tree_[i].velocity - vel) / delta_t;
             if (vel > max_vel_ || fabs(acc) > max_acc_) {
                 dist.push_back(10000);
@@ -354,7 +363,9 @@ void RRT::GetNearestNode(const Node& sample,
 
 void RRT::Steer(const Node& sample, const Node& nearest_node,
                 Node* new_node) {
+
     double k = ComputeVelocity(sample, nearest_node);
+    if (k <= 0) k = 0;
     new_node->time = nearest_node.time + dt_;
     new_node->distance = nearest_node.distance + k * dt_;
     new_node->velocity = k;
@@ -442,10 +453,10 @@ double RRT::GetPathSmoothness(const std::deque<Node>& path) {
                           / (path.front().time - path.back().time));
     double average_acc = sum_acc / vector_acc.size();
     double variance_acc = 0;
-    for (int i = 0; i < vector_acc.size(); i++){
+    for (int i = 0; i < vector_acc.size(); i++) {
         variance_acc = variance_acc + abs(vector_acc[i] - average_acc);
     }
-    variance_acc = abs(variance_acc)/vector_acc.size() * 10;
+    variance_acc = abs(variance_acc) / vector_acc.size() * 10;
 
     return variance_acc;
 }
@@ -455,7 +466,7 @@ double RRT::GetPathVelError(const std::deque<Node>& path) {
     for (int i = 0; i < path.size(); i++) {
         ev = ev + fabs(path[i].velocity - v_goal_) / v_goal_;
     }
-    return ev/path.size();
+    return ev / path.size();
 }
 
 std::vector<double> RRT::GetNodeCost(const Node& parent_node,
@@ -528,8 +539,8 @@ void RRT::PrintNodes(std::deque<Node>& nodes) {
 }
 
 void RRT::PrintCost(std::vector<double>& cost) {
-    cout << "cost:" << "risk:" << cost[0] << ",smoothness:" << cost[1]
-         << ",vel error:" << cost[2] << endl;
+    cout << "cost:" << "risk:" << kr_* cost[0] << ",smoothness:" << ks_ * cost[1]
+         << ",vel error:" << kv_ * cost[2] << endl;
 }
 
 bool RRT::ReachingGoal(const Node& node) {
@@ -547,4 +558,52 @@ std::string RRT::int2string(int value) {
         ss << value;
     }
     return ss.str();
+}
+
+std::deque<Node>  RRT::PostProcessing(std::deque<Node>& path) {
+    std::deque<Node> full_path;
+    for (int i = 0; i < path.size() - 1; i++) {
+        double n = 10*(path[i+1].time - path[i].time);
+        // TODO: figure out the error.
+        //cout << n << "path time:" << path[i+1].time << "," << path[i].time << endl;
+        //cout << "n:" << n << "int n" << static_cast<int>(n) << endl;
+        for (int k = 0; k < n-0.5; k++) {
+            Node node;
+            node.time = path[i].time + k * dt_;
+            node.distance = path[i].distance + path[i + 1].velocity * dt_ * k;
+            full_path.push_back(node);
+        }
+    }
+    full_path.push_back(path.back());
+
+    std::deque<Node> smoothing_path;
+    smoothing_path.push_back(full_path[0]);
+    Node node = full_path[1];
+    node.distance = (full_path[0].distance + full_path[1].distance +
+                     full_path[2].distance) / 3.0;
+    smoothing_path.push_back(node);
+
+    for (int i = 2; i < full_path.size() - 2; i++) {
+        Node node = full_path[i];
+        node.distance = (full_path[i - 2].distance + full_path[i - 1].distance +
+                         full_path[i].distance +
+                         full_path[i + 1].distance + full_path[i + 2].distance) / 5.0;
+        smoothing_path.push_back(node);
+    }
+
+    int sz = full_path.size();
+    node  = full_path[sz - 2];
+    node.distance = (full_path[sz - 3].distance + full_path[sz - 2].distance +
+                     full_path[sz - 1].distance) /
+                    3.0;
+    smoothing_path.push_back(node);
+    node = full_path[sz - 1];
+    smoothing_path.push_back(node);
+
+    smoothing_path[0].velocity = path[0].velocity;
+    for (int i = 1; i < smoothing_path.size(); i++) {
+        smoothing_path[i].velocity = (smoothing_path[i].distance - smoothing_path[i -
+                                      1].distance) / (smoothing_path[i].time - smoothing_path[i - 1].time);
+    }
+    return smoothing_path;
 }

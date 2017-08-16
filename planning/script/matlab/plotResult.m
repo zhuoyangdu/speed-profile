@@ -13,8 +13,19 @@ if strcmp(tline, 'final_path')
     end
     final_path = path;
     plotPath(path);
-
-else if strcmp(tline, 'tree')
+    %postProcessing;
+end
+if strcmp(tline, 'smoothing_path')
+    path = [];
+    while 1
+        tline = fgetl(log_file);
+        if strcmp(tline, 'end_path'), break; end
+        sline = str2double(strsplit(tline, '\t'));
+        path = [path; sline];
+    end
+    plotPath(path); 
+end
+if strcmp(tline, 'tree')
     tree = [];
     while 1
         tline = fgetl(log_file);
@@ -32,7 +43,6 @@ else if strcmp(tline, 'tree')
         plot(sample_t, sample_s, '.');
         end
     %}
-    end
 end
 end
 fclose(log_file);

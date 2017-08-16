@@ -1,5 +1,5 @@
 clear;
 readConfig;
-plotDistanceMap;
+%plotDistanceMap;
 plotResult;
 plotRoad;
