@@ -18,9 +18,14 @@ class Node {
     }
 
     void print_node() {
+      /*
         std::cout << "time:" << time << " distance:" << distance <<
                   " vel:" << velocity << " self_id:" << self_id <<
                   " parent_id:" << parent_id << " cost:" << cost[0] <<
+                  "," << cost[1] << "," << cost[2] << std::endl;
+      */
+        std::cout << "t:" << time << " s:" << distance <<
+                  " v:" << velocity << " cost:" << cost[0] <<
                   "," << cost[1] << "," << cost[2] << std::endl;
     }
 

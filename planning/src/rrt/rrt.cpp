@@ -34,15 +34,6 @@ RRT::RRT() {
 void RRT::newFile() {
     time_t t = std::time(NULL);
     struct tm * now = std::localtime(&t);
-    /*
-    file_name_ = planning_path_ + "/log/log_tree_"
-                 + int2string(now->tm_year + 1900 - 2000)
-                 + '_' + int2string(now->tm_mon + 1)
-                 + '_' + int2string(now->tm_mday)
-                 + '_' + int2string(now->tm_hour)
-                 + '_' + int2string(now->tm_min)
-                 + '_' + int2string(now->tm_sec);
-    */
     file_name_ = planning_path_ + "/log/rrt.txt";
     std::ofstream out_file_(file_name_.c_str());
     if (!out_file_) {
@@ -82,6 +73,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
               << vehicle_state.theta << "\t" << vehicle_state.velocity << "\n";
     //out_file_.close();
 
+    clock_t temp_t = clock();
     // Initialize path.
     curve_x_ = curve_x;
     curve_y_ = curve_y;
@@ -91,6 +83,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     obstacles.SetObstacles(obstacle_map);
     obstacles.InitializeDistanceMap(vehicle_state, curve_x_, curve_y_, s0);
     obstacles.ComputeTTCMap(s0, curve_x_, curve_y_);
+    cout << "Initial time:" << double(clock() - temp_t) / CLOCKS_PER_SEC << endl;
 
     // Initialize tree.
     double length = 0;
@@ -98,7 +91,6 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     first_node.velocity = vehicle_state.velocity;
     first_node.self_id = 0;
     first_node.parent_id = -1;
-    first_node.print_node();
     tree_ = {first_node};
 
     int n_sample = 0;
@@ -136,8 +128,8 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                 std::deque<Node> path = GetParentPath(new_node);
                 std::vector<double> path_cost = GetPathCost(path);
                 double cost_sum = WeightingCost(path_cost);
-                cout << "current path cost: " << cost_sum << ", min cost:" << min_cost <<
-                     endl;
+                // cout << "current path cost: " << cost_sum << ", min cost:" << min_cost <<
+                //     endl;
                 if (cost_sum < min_cost) {
                     min_path = path;
                     min_cost = cost_sum;
@@ -153,11 +145,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                               << path_cost[1]*ks_ << "," << path_cost[2]*kv_ << "\n";
                     out_file_.close();
                 }
-                cout << "found " << n_path << " paths" << endl;
-                cout << "path cost:" << "sum:" << cost_sum << "," << kr_*path_cost[0] << "," <<
-                     ks_*path_cost[1] << "," << kv_*path_cost[2] << endl;
-                // PrintNodes(path);
-                if (n_path > 100) {
+                if (n_path > 50) {
                     cout << "The final path is:" << endl;
                     PrintNodes(min_path);
                     cout << "The cost of the final path is:" << min_cost << endl;
@@ -191,6 +179,13 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     ends = clock();
     cout << "elapsed time:" << double(ends - start) / CLOCKS_PER_SEC << endl;
 
+    cout << "module time:" << endl;
+    cout << "nearest time:" << time_nearest_ << endl;
+    cout << "steer time:" << time_steer_ << endl;
+    cout << "feasible time:" << time_feasible_ << endl;
+    cout << "choose parent time:" << time_choose_parent_ << endl;
+    cout << "rewire time:" << time_rewire_ << endl;
+
     if (n_path > 0) {
         std::deque<Node> smoothing_path = PostProcessing(min_path);
         SendVisualization(smoothing_path, curve_x_, curve_y_);
@@ -217,7 +212,10 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid) {
 
     // Find nearest node.
     Node nearest_node;
+    clock_t temp_t = clock();
     GetNearestNode(sample, &nearest_node, node_valid);
+    time_nearest_ += double(clock() - temp_t) / CLOCKS_PER_SEC;
+
     if (!*node_valid) {
         return;
     }
@@ -225,73 +223,80 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid) {
     int n_collision_sample = 0;
 
     // Steer to get new node.
+    temp_t = clock();
     Steer(sample, nearest_node, new_node);
+    time_steer_ += double(clock() - temp_t) / CLOCKS_PER_SEC;
+
     if (new_node->time > t_goal_) {
         n_collision_sample += 1;
         *node_valid = false;
         return;
     }
 
+    temp_t = clock();
     bool vertex_feasible = VertexFeasible(nearest_node, *new_node);
-    /*
-    if (sample.time >= 3) {
-        cout << "sample node:" << sample.time << "," << sample.distance <<
-             " nearest_node:" << nearest_node.time << "," << nearest_node.distance <<
-             " new node:" << new_node->time << "," << new_node->distance << endl;
-    }
-    */
+    time_feasible_ += double(clock() - temp_t) / CLOCKS_PER_SEC;
+
     if (vertex_feasible) {
         *node_valid = true;
-        Node min_node = nearest_node;
-        std::vector<double> cost_min = GetNodeCost(min_node, *new_node);
 
-        std::vector<Node> near_region = GetLowerRegion(*new_node);
+        clock_t temp_t = clock();
+        ChooseParent(nearest_node, new_node);
+        time_choose_parent_ += double(clock() - temp_t) / CLOCKS_PER_SEC;
 
-        for (int i = 0; i < near_region.size(); i++) {
-            Node near_node = near_region[i];
-            vertex_feasible = VertexFeasible(near_node, *new_node);
-            if (!vertex_feasible) choose_par_un_feasible += 1;
-            if (vertex_feasible) {
-                std::vector<double> cost_near = GetNodeCost(near_node, *new_node);
-
-                if (WeightingCost(cost_near) < WeightingCost(cost_min)) {
-                    cost_min = cost_near;
-                    min_node = near_node;
-                }
-            }
-        }
-        min_node = nearest_node;
-        new_node->parent_id = min_node.self_id;
-        new_node->self_id = tree_.size();
-        new_node->velocity = ComputeVelocity(min_node, *new_node);
-        new_node->cost = cost_min;
-        tree_.push_back(*new_node);
-        if (new_node->time > max_tree_t_) {
-            max_tree_t_ = new_node->time;
-        }
-
-        near_region = GetUpperRegion(*new_node);
-        for (int i = 0; i < near_region.size(); i++) {
-            Node near_node = near_region[i];
-            vertex_feasible = VertexFeasible(*new_node, near_node);
-            if (!vertex_feasible) rewire_un_feasible += 1;
-            if (vertex_feasible) {
-                std::vector<double> cost_near = near_node.cost;
-                std::vector<double> cost_new = GetNodeCost(*new_node, near_node);
-                if (WeightingCost(cost_near) > WeightingCost(cost_new)) {
-                    int previous_parent = near_node.parent_id;
-                    near_node.parent_id = new_node->self_id;
-                    near_node.velocity = ComputeVelocity(*new_node, near_node);
-                    near_node.cost = cost_new;
-                    tree_[near_node.self_id] = near_node;
-                }
-            }
-        }
+        temp_t = clock();
+        Rewire(*new_node);
+        time_rewire_ += double(clock() - temp_t) / CLOCKS_PER_SEC;
 
     } else {
-        // std::cout << "no feasible!" << endl;
         *node_valid = false;
         return;
+    }
+}
+
+void RRT::Rewire(const Node& new_node) {
+    std::vector<Node> near_region = GetUpperRegion(new_node);
+    for (int i = 0; i < near_region.size(); i++) {
+        Node near_node = near_region[i];
+        bool vertex_feasible = VertexFeasible(new_node, near_node);
+        if (!vertex_feasible) rewire_un_feasible += 1;
+        if (vertex_feasible) {
+            std::vector<double> cost_near = near_node.cost;
+            std::vector<double> cost_new = GetNodeCost(new_node, near_node);
+            if (WeightingCost(cost_near) > WeightingCost(cost_new)) {
+                int previous_parent = near_node.parent_id;
+                near_node.parent_id = new_node.self_id;
+                near_node.velocity = ComputeVelocity(new_node, near_node);
+                near_node.cost = cost_new;
+                tree_[near_node.self_id] = near_node;
+            }
+        }
+    }
+}
+void RRT::ChooseParent(const Node& nearest_node, Node* new_node) {
+    Node min_node = nearest_node;
+    std::vector<double> cost_min = GetNodeCost(min_node, *new_node);
+
+    std::vector<Node> near_region = GetLowerRegion(*new_node);
+    for (int i = 0; i < near_region.size(); i++) {
+        Node near_node = near_region[i];
+        bool vertex_feasible = VertexFeasible(near_node, *new_node);
+        if (!vertex_feasible) choose_par_un_feasible += 1;
+        if (vertex_feasible) {
+            std::vector<double> cost_near = GetNodeCost(near_node, *new_node);
+            if (WeightingCost(cost_near) < WeightingCost(cost_min)) {
+                cost_min = cost_near;
+                min_node = near_node;
+            }
+        }
+    }
+    new_node->parent_id = min_node.self_id;
+    new_node->self_id = tree_.size();
+    new_node->velocity = ComputeVelocity(min_node, *new_node);
+    new_node->cost = cost_min;
+    tree_.push_back(*new_node);
+    if (new_node->time > max_tree_t_) {
+        max_tree_t_ = new_node->time;
     }
 }
 
@@ -304,7 +309,6 @@ Node RRT::RandomSample(double s0) {
     double sample_s = 0;
     double sample_s_range = s_max_ < t_max_ * max_vel_ ? s_max_ : t_max_ *
                             max_vel_;
-    // double sample_t_range = (max_tree_t_+2) < t_max_ ? (max_tree_t_+2) : t_max_;
     sample_t = (double) rand() / RAND_MAX * t_max_;
     double s_range = sample_t * max_vel_;
     sample_s = (double) rand() / RAND_MAX * s_range + s0;
@@ -314,9 +318,7 @@ Node RRT::RandomSample(double s0) {
 
 int getMinIndex(const std::vector<double>& v) {
     std::vector<int>::iterator result;
-    // result = std::min_element(v.begin(), v.end());
     int index = std::distance(v.begin(), std::min_element(v.begin(), v.end()));
-    // std::cout << "max element at: " << index << endl;
     return index;
 }
 
@@ -327,7 +329,6 @@ void RRT::GetNearestNode(const Node& sample,
     for (int i = 0; i < tree_.size(); i++) {
         double delta_s = sample.distance - tree_[i].distance;
         double delta_t = sample.time - tree_[i].time;
-        // cout << "delta_s:"<< delta_s << " delta_t:"<< delta_t << endl;
 
         if (delta_s < -0.5 || delta_t < 0) {
             dist.push_back(10000);
@@ -343,7 +344,6 @@ void RRT::GetNearestNode(const Node& sample,
                 dist.push_back(fabs(acc) + delta_t);
             }
         }
-        // cout << "dist:" << dist[i] << endl;
     }
     int min_index = getMinIndex(dist);
     if (dist[min_index] >= 10000) {
@@ -380,8 +380,6 @@ double RRT::GetGeometryPathLength(double x, double y) {
     Spline::getClosestPointOnCurve(curve_x_, curve_y_, x, y, &s, &d);
     double ref_x = curve_x_(s);
     double ref_y = curve_y_(s);
-    //cout << "ref_x:" << ref_x << ", ref_y:" << ref_y << ", length:" << s
-    //    <<",d:" << d << " x:" << x << ", y:" << y << endl;
     return s;
 }
 
@@ -442,8 +440,8 @@ double RRT::GetPathSmoothness(const std::deque<Node>& path) {
         sum_abs_acc = sum_abs_acc + fabs(acc);
     }
 
-    double min_acc = fabs((path.front().velocity - path.back().velocity)
-                          / (path.front().time - path.back().time));
+    // double min_acc = fabs((path.front().velocity - path.back().velocity)
+    //                      / (path.front().time - path.back().time));
     double average_acc = sum_acc / vector_acc.size();
     double variance_acc = 0;
     for (int i = 0; i < vector_acc.size(); i++) {
@@ -465,31 +463,19 @@ double RRT::GetPathVelError(const std::deque<Node>& path) {
 std::vector<double> RRT::GetNodeCost(const Node& parent_node,
                                      const Node& child_node) {
     std::deque<Node> path = GetParentPath(parent_node);
-
-    double risk = obstacles.RiskAssessment(path, curve_x_, curve_y_);
-    double smoothness = GetPathSmoothness(path);
-    double e_vel = GetPathVelError(path);
-    // double smoothness = GetNodeSmooth(parent_node, child_node);
-    // double e_vel = GetNodeVelError(parent_node, child_node);
-    std::vector<double> cost = {risk, smoothness, e_vel};
+    Node new_child = child_node;
+    new_child.velocity = ComputeVelocity(parent_node, child_node);
+    path.push_back(new_child);
+    std::vector<double> cost = GetPathCost(path);
     return cost;
-}
-
-double RRT::GetNodeSmooth(const Node& parent_node, const Node& child_node) {
-    double child_vel = ComputeVelocity(parent_node, child_node);
-    return fabs(parent_node.velocity - child_vel);
-}
-
-double RRT::GetNodeVelError(const Node& parent_node, const Node& child_node) {
-    double child_vel = ComputeVelocity(parent_node, child_node);
-    return fabs(child_vel - v_goal_);
 }
 
 std::vector<Node> RRT::GetLowerRegion(const Node& node) {
     std::vector<Node> near_region;
     for (int i = 0; i < tree_.size(); i++) {
         if (tree_[i].time < node.time
-                && tree_[i].distance < node.distance) {
+                && tree_[i].distance < node.distance
+                && node.time - tree_[i].time < 1) {
             double vel = (node.distance - tree_[i].distance) / (node.time -
                          tree_[i].time);
             double acc = (vel - tree_[i].velocity) / (node.time - tree_[i].time);
@@ -505,7 +491,8 @@ std::vector<Node> RRT::GetUpperRegion(const Node& node) {
     std::vector<Node> near_region;
     for (int i = 0; i < tree_.size(); i++) {
         if (tree_[i].time > node.time
-                && tree_[i].distance > node.distance) {
+                && tree_[i].distance > node.distance
+                && tree_[i].time - node.time < 1) {
             double vel = ComputeVelocity(node, tree_[i]);
             double acc = ComputeAcceleration(node, tree_[i]);
             if (fabs(acc) < lower_range_a_ && vel < max_vel_) {
@@ -602,12 +589,12 @@ std::deque<Node>  RRT::PostProcessing(std::deque<Node>& path) {
 }
 
 double getAngle(const Node& node, const Node& parent_node,
-                const Spline& curve_x, const Spline& curve_y){
+                const Spline& curve_x, const Spline& curve_y) {
     double node_x = curve_x(node.distance);
     double node_y = curve_y(node.distance);
     double parent_x = curve_x(parent_node.distance);
     double parent_y = curve_y(parent_node.distance);
-    double angle = atan2(node_x-parent_x, node_y-parent_y);
+    double angle = atan2(node_x - parent_x, node_y - parent_y);
     return angle;
 }
 
@@ -623,11 +610,12 @@ void RRT::SendVisualization(const std::deque<Node>& smoothing_path,
     out_file_ << "end_path\n";
 
     out_file_ << "moving_vehicle\n";
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < 5; i++) {
         int k = i * 10;
         double veh_x = curve_x(smoothing_path[k].distance);
         double veh_y = curve_y_(smoothing_path[k].distance);
-        double angle = getAngle(smoothing_path[k+1], smoothing_path[k], curve_x, curve_y);
+        double angle = getAngle(smoothing_path[k + 1], smoothing_path[k], curve_x,
+                                curve_y);
         out_file_ << veh_x << "\t" << veh_y << "\t" << angle << "\n";
     }
     out_file_ << "end_vehicle\n";

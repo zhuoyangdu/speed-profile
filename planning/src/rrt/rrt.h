@@ -54,10 +54,6 @@ class RRT {
 
     std::deque<Node> GetParentPath(const Node& node);
 
-    double GetNodeSmooth(const Node& parent_node, const Node& child_node);
-
-    double GetNodeVelError(const Node& parent_node, const Node& child_node);
-
     std::vector<Node> GetLowerRegion(const Node& node);
 
     std::vector<Node> GetUpperRegion(const Node& node);
@@ -125,11 +121,20 @@ class RRT {
     int choose_par_un_feasible = 0;
     int rewire_un_feasible = 0;
 
+    double time_nearest_ = 0;
+    double time_steer_ = 0;
+    double time_feasible_ = 0;
+    double time_choose_parent_ = 0;
+    double time_rewire_ = 0;
+
     std::deque<Node>  PostProcessing(std::deque<Node>& path);
     void SendVisualization(const std::deque<Node>& smoothing_path,
                            const Spline& curve_x,
                            const Spline& curve_y);
 
+    void ChooseParent(const Node& nearest_node, Node* new_node);
+
+    void Rewire(const Node& new_node);
 };
 
 }
