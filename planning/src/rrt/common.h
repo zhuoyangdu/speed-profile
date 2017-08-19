@@ -13,8 +13,10 @@ class Node {
         distance = dis;
         self_id = s_id;
         velocity = 0;
+        acceleration = 0;
         cost = {0, 0, 0};
         parent_id = 0;
+        children_id = {};
     }
 
     void print_node() {
@@ -23,19 +25,27 @@ class Node {
                   " vel:" << velocity << " self_id:" << self_id <<
                   " parent_id:" << parent_id << " cost:" << cost[0] <<
                   "," << cost[1] << "," << cost[2] << std::endl;
-      */
+    */
         std::cout << "t:" << time << " s:" << distance <<
-                  " v:" << velocity << " cost:" << cost[0] <<
-                  "," << cost[1] << "," << cost[2] << std::endl;
+                  " v:" << velocity << " a:" << acceleration << std::endl;
+        /*
+        std::cout << "children_id:";
+        for(int i = 0; i < children_id.size(); i++){
+          std::cout << children_id[i] << "\t";
+        }
+        std::cout << std::endl;
+        */
     }
 
   public:
     double time;
     double distance;
     double velocity;
+    double acceleration;
     std::vector<double> cost;
     int self_id;
     int parent_id;
+    std::vector<int> children_id;
 };
 
 }  // namespace planning

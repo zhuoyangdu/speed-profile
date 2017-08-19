@@ -8,14 +8,14 @@ rrt/dt : 0.1
 rrt/max_acc : 5
 rrt/max_vel : 15
 rrt/kr : 100
-rrt/ks : 5
+rrt/ks : 2
 rrt/kv : 100
 rrt/lower_range_t : 1
 rrt/lower_range_s : 10
 rrt/upper_range_t : 1
 rrt/upper_range_s : 10
-rrt/upper_range_a: 0.5
-rrt/lower_range_a: 0.5
+rrt/upper_range_a: 0.1
+rrt/lower_range_a: 0.1
 
 rrt/k_risk : 10
 rrt/danger_distance : 3
@@ -31,6 +31,7 @@ emergency_stop_case/x0 : 520
 emergency_stop_case/y0 : 497.5
 emergency_stop_case/theta0 : 1.570
 emergency_stop_case/v0 : 10
+emergency_stop_case/a0 : 0
 emergency_stop_case/obs1_x0 : 540
 emergency_stop_case/obs1_y0 : 497.5
 emergency_stop_case/obs1_theta0 : 1.570
@@ -41,6 +42,7 @@ crossing_case/x0 : 502.5
 crossing_case/y0 : 480
 crossing_case/theta0 : 0
 crossing_case/v0 : 8
+crossing_case/a0 : 0
 crossing_case/obs1_x0 : 480
 crossing_case/obs1_y0 : 497.5
 crossing_case/obs1_theta0 : 1.570
@@ -51,6 +53,7 @@ turn_left_case/x0 : 502.5
 turn_left_case/y0 : 480
 turn_left_case/theta0 : 0
 turn_left_case/v0 : 6
+turn_left_case/a0 : 0
 turn_left_case/obs1_x0 : 470
 turn_left_case/obs1_y0 : 497.5
 turn_left_case/obs1_theta0 : 1.570
@@ -61,6 +64,7 @@ keep_lane_case/x0 : 540
 keep_lane_case/y0 : 497.5
 keep_lane_case/theta0 : 1.570
 keep_lane_case/v0 : 10
+keep_lane_case/a0 : 1
 keep_lane_case/obs1_x0 : 520
 keep_lane_case/obs1_y0 : 497.5
 keep_lane_case/obs1_theta0 : 1.570

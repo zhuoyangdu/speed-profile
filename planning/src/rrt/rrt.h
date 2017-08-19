@@ -52,6 +52,8 @@ class RRT {
     std::vector<double> GetNodeCost(const Node& parent_node,
                                     const Node& child_node);
 
+    std::vector<double> GetSingleNodeCost(const Node& node);
+
     std::deque<Node> GetParentPath(const Node& node);
 
     std::vector<Node> GetLowerRegion(const Node& node);
@@ -134,7 +136,7 @@ class RRT {
 
     void ChooseParent(const Node& nearest_node, Node* new_node);
 
-    void Rewire(const Node& new_node);
+    void Rewire(Node& new_node);
 };
 
 }

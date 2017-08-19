@@ -115,6 +115,8 @@ void PlanningNode::ParamConfig() {
                         single_test_vehicle_.theta);
         ros::param::get("~" + single_test_case + "/v0",
                         single_test_vehicle_.velocity);
+        ros::param::get("~" + single_test_case + "/a0",
+                        single_test_vehicle_.acceleration);
         ros::param::get("~" + single_test_case + "/road_file", road_file_);
 
         // Read dynamic obstacles.

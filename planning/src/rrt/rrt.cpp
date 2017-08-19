@@ -89,6 +89,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     double length = 0;
     Node first_node(0, s0);
     first_node.velocity = vehicle_state.velocity;
+    first_node.acceleration = vehicle_state.acceleration;
     first_node.self_id = 0;
     first_node.parent_id = -1;
     tree_ = {first_node};
@@ -239,36 +240,45 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid) {
 
     if (vertex_feasible) {
         *node_valid = true;
-
         clock_t temp_t = clock();
         ChooseParent(nearest_node, new_node);
         time_choose_parent_ += double(clock() - temp_t) / CLOCKS_PER_SEC;
-
         temp_t = clock();
         Rewire(*new_node);
         time_rewire_ += double(clock() - temp_t) / CLOCKS_PER_SEC;
-
     } else {
         *node_valid = false;
         return;
     }
 }
 
-void RRT::Rewire(const Node& new_node) {
+void RRT::Rewire(Node& new_node) {
     std::vector<Node> near_region = GetUpperRegion(new_node);
     for (int i = 0; i < near_region.size(); i++) {
         Node near_node = near_region[i];
         bool vertex_feasible = VertexFeasible(new_node, near_node);
         if (!vertex_feasible) rewire_un_feasible += 1;
         if (vertex_feasible) {
-            std::vector<double> cost_near = near_node.cost;
+            // std::vector<double> cost_near = near_node.cost;
+            std::vector<double> cost_near = GetSingleNodeCost(near_node);
             std::vector<double> cost_new = GetNodeCost(new_node, near_node);
             if (WeightingCost(cost_near) > WeightingCost(cost_new)) {
-                int previous_parent = near_node.parent_id;
+                int previous_parent_id = near_node.parent_id;
+                Node previous_parent = tree_[near_node.parent_id];
                 near_node.parent_id = new_node.self_id;
                 near_node.velocity = ComputeVelocity(new_node, near_node);
-                near_node.cost = cost_new;
+                near_node.acceleration = ComputeAcceleration(new_node, near_node);
                 tree_[near_node.self_id] = near_node;
+                tree_[new_node.self_id].children_id.push_back(near_node.self_id);
+                vector<int>::iterator iter = find(previous_parent.children_id.begin(),
+                                                  previous_parent.children_id.end(), near_node.self_id);
+                if (iter != previous_parent.children_id.end())
+                    previous_parent.children_id.erase(iter);
+                tree_[previous_parent_id] = previous_parent;
+                for(int k = 0; k < near_node.children_id.size(); k++){
+                    int child_index = near_node.children_id[k];
+                    tree_[child_index].acceleration = ComputeAcceleration(near_node, tree_[child_index]);
+                }
             }
         }
     }
@@ -293,15 +303,18 @@ void RRT::ChooseParent(const Node& nearest_node, Node* new_node) {
     new_node->parent_id = min_node.self_id;
     new_node->self_id = tree_.size();
     new_node->velocity = ComputeVelocity(min_node, *new_node);
-    new_node->cost = cost_min;
+    new_node->acceleration = ComputeAcceleration(min_node, *new_node);
+    // new_node->cost = cost_min;
     tree_.push_back(*new_node);
+    tree_[min_node.self_id].children_id.push_back(new_node->self_id);
     if (new_node->time > max_tree_t_) {
         max_tree_t_ = new_node->time;
     }
 }
 
 double RRT::WeightingCost(std::vector<double>& cost) {
-    return kr_ * cost[0] + ks_ * cost[1] + kv_ * cost[2];
+    double w = kr_ * cost[0] + ks_ * cost[1] + kv_ * cost[2];
+    return w;
 }
 
 Node RRT::RandomSample(double s0) {
@@ -432,9 +445,10 @@ double RRT::GetPathSmoothness(const std::deque<Node>& path) {
     double sum_abs_acc = 0;
     double sum_acc = 0;
     std::vector<double> vector_acc;
-    for (int i = 1; i < path.size(); i++) {
-        double acc = (path[i].velocity - path[i - 1].velocity) /
-                     (path[i].time - path[i - 1].time);
+    for (int i = 0; i < path.size(); i++) {
+        // double acc = (path[i].velocity - path[i - 1].velocity) /
+        //             (path[i].time - path[i - 1].time);
+        double acc = path[i].acceleration;
         vector_acc.push_back(acc);
         sum_acc = sum_acc + acc;
         sum_abs_acc = sum_abs_acc + fabs(acc);
@@ -470,16 +484,23 @@ std::vector<double> RRT::GetNodeCost(const Node& parent_node,
     return cost;
 }
 
+std::vector<double> RRT::GetSingleNodeCost(const Node& node){
+    std::deque<Node> path = GetParentPath(node);
+    std::vector<double> cost = GetPathCost(path);
+    return cost;
+}
+
 std::vector<Node> RRT::GetLowerRegion(const Node& node) {
     std::vector<Node> near_region;
     for (int i = 0; i < tree_.size(); i++) {
         if (tree_[i].time < node.time
                 && tree_[i].distance < node.distance
                 && node.time - tree_[i].time < 1) {
-            double vel = (node.distance - tree_[i].distance) / (node.time -
-                         tree_[i].time);
-            double acc = (vel - tree_[i].velocity) / (node.time - tree_[i].time);
-            if (fabs(acc) < lower_range_a_ && fabs(vel) < max_vel_) {
+            double vel = ComputeVelocity(tree_[i], node);
+            double child_acc = ComputeAcceleration(tree_[i], node);
+            double parent_acc = tree_[i].acceleration;
+            double delta_acc = parent_acc - child_acc;
+            if (fabs(delta_acc) < lower_range_a_ && fabs(vel) < max_vel_) {
                 near_region.push_back(tree_[i]);
             }
         }
@@ -494,8 +515,10 @@ std::vector<Node> RRT::GetUpperRegion(const Node& node) {
                 && tree_[i].distance > node.distance
                 && tree_[i].time - node.time < 1) {
             double vel = ComputeVelocity(node, tree_[i]);
-            double acc = ComputeAcceleration(node, tree_[i]);
-            if (fabs(acc) < lower_range_a_ && vel < max_vel_) {
+            double parent_acc = node.acceleration;
+            double child_acc = ComputeAcceleration(node, tree_[i]);
+            double delta_acc = parent_acc - child_acc;
+            if (fabs(delta_acc) < lower_range_a_ && vel < max_vel_) {
                 near_region.push_back(tree_[i]);
             }
         }
