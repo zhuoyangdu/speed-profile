@@ -146,7 +146,7 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                               << path_cost[1]*ks_ << "," << path_cost[2]*kv_ << "\n";
                     out_file_.close();
                 }
-                if (n_path > 50) {
+                if (n_path > 500) {
                     cout << "The final path is:" << endl;
                     PrintNodes(min_path);
                     cout << "The cost of the final path is:" << min_cost << endl;
@@ -469,7 +469,7 @@ double RRT::GetPathSmoothness(const std::deque<Node>& path) {
 double RRT::GetPathVelError(const std::deque<Node>& path) {
     double ev = 0;
     for (int i = 0; i < path.size(); i++) {
-        ev = ev + fabs(path[i].velocity - v_goal_) / v_goal_;
+        ev = ev + fabs(path[i].velocity - v_goal_);
     }
     return ev / path.size();
 }
@@ -530,14 +530,20 @@ std::vector<Node> RRT::GetUpperRegion(const Node& node) {
 void RRT::PrintNodes(std::vector<Node>& nodes) {
     cout << "size:" << nodes.size() << endl;
     for (int i = 0; i < nodes.size(); i++) {
-        nodes[i].print_node();
+        std::cout << "t:" << nodes[i].time << " s:" << nodes[i].distance
+            << " vel:" << nodes[i].velocity << " acc:" << nodes[i].acceleration;
+        std::vector<double> cost = GetSingleNodeCost(nodes[i]);
+        cout << " cost:" << cost[0] << ", " << cost[1] << ", " << cost[2] << endl;
     }
 }
 
 void RRT::PrintNodes(std::deque<Node>& nodes) {
     cout << "size:" << nodes.size() << endl;
     for (int i = 0; i < nodes.size(); i++) {
-        nodes[i].print_node();
+        std::cout << "t:" << nodes[i].time << " s:" << nodes[i].distance
+            << " vel:" << nodes[i].velocity << " acc:" << nodes[i].acceleration;
+        std::vector<double> cost = GetSingleNodeCost(nodes[i]);
+        cout << " cost:" << cost[0] << ", " << cost[1] << ", " << cost[2] << endl;
     }
 }
 

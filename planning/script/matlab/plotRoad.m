@@ -1,6 +1,6 @@
 figure(1);
 title('Environment');
-xlim([510,560]);
+xlim([440,540]);
 %axis([500,600,460,540]);
 axis equal;
 hold on;
