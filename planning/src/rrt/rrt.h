@@ -122,6 +122,10 @@ class RRT {
     int un_collision = 0;
     int choose_par_un_feasible = 0;
     int rewire_un_feasible = 0;
+    int change_parent = 0;
+    int choose_parent = 0;
+    int rewire_number = 0;
+    int rewire_suc = 0;
 
     double time_nearest_ = 0;
     double time_steer_ = 0;

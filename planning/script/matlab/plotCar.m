@@ -1,5 +1,5 @@
 function plotCar(x,y,ang, color, facealpha)
-    figure(1);
+    %figure(1);
     hold on;
 
     length = 3.5;

@@ -32,7 +32,7 @@ bool Obstacles::CollisionFree(const Node& parent_node, const Node& child_node,
             double vehicle_y = curve_y(s);
             double dist = sqrt(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
                                2));
-            t = t + 0.1;
+            t = t + 0.5;
             if (dist < collision_distance_) {
                 return false;
             }

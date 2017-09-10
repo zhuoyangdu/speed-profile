@@ -171,15 +171,19 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     }
     out_file_ << "end_tree\n";
     out_file_.close();
+
     cout << "total attemps:" << n_sample << ", feasible sample:" << n_feasible <<
          endl;
     cout << "unvel:" << un_vel << ", unacc:" << un_acc << ", un_col:" <<
          un_collision << endl;
     cout << "choose_par_un_feasible:" << choose_par_un_feasible << "," <<
          "rewire_un_feasible:" << rewire_un_feasible << endl;
+    cout << "change_parent:" << change_parent <<  "," << "choose_parent:" <<
+        choose_parent << endl;
+    cout << "rewire:" << rewire_number << "," << "suc:" << rewire_suc << endl;
+
     ends = clock();
     cout << "elapsed time:" << double(ends - start) / CLOCKS_PER_SEC << endl;
-
     cout << "module time:" << endl;
     cout << "nearest time:" << time_nearest_ << endl;
     cout << "steer time:" << time_steer_ << endl;
@@ -253,13 +257,13 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid) {
 }
 
 void RRT::Rewire(Node& new_node) {
+    rewire_number += 1;
     std::vector<Node> near_region = GetUpperRegion(new_node);
     for (int i = 0; i < near_region.size(); i++) {
         Node near_node = near_region[i];
         bool vertex_feasible = VertexFeasible(new_node, near_node);
         if (!vertex_feasible) rewire_un_feasible += 1;
         if (vertex_feasible) {
-            // std::vector<double> cost_near = near_node.cost;
             std::vector<double> cost_near = GetSingleNodeCost(near_node);
             std::vector<double> cost_new = GetNodeCost(new_node, near_node);
             if (WeightingCost(cost_near) > WeightingCost(cost_new)) {
@@ -279,11 +283,13 @@ void RRT::Rewire(Node& new_node) {
                     int child_index = near_node.children_id[k];
                     tree_[child_index].acceleration = ComputeAcceleration(near_node, tree_[child_index]);
                 }
+                rewire_suc += 1;
             }
         }
     }
 }
 void RRT::ChooseParent(const Node& nearest_node, Node* new_node) {
+    choose_parent += 1;
     Node min_node = nearest_node;
     std::vector<double> cost_min = GetNodeCost(min_node, *new_node);
 
@@ -297,6 +303,7 @@ void RRT::ChooseParent(const Node& nearest_node, Node* new_node) {
             if (WeightingCost(cost_near) < WeightingCost(cost_min)) {
                 cost_min = cost_near;
                 min_node = near_node;
+                change_parent += 1;
             }
         }
     }
@@ -338,13 +345,15 @@ int getMinIndex(const std::vector<double>& v) {
 void RRT::GetNearestNode(const Node& sample,
                          Node* nearest_node,
                          bool* node_valid) {
-    std::vector<double> dist;
+    double min_dist = 10000;
+    double min_index = -1;
+
     for (int i = 0; i < tree_.size(); i++) {
         double delta_s = sample.distance - tree_[i].distance;
         double delta_t = sample.time - tree_[i].time;
 
         if (delta_s < -0.5 || delta_t < 0) {
-            dist.push_back(10000);
+            continue;
         } else {
             double vel = delta_s / delta_t;
             if (delta_s <= 0) {
@@ -352,19 +361,24 @@ void RRT::GetNearestNode(const Node& sample,
             }
             double acc = (tree_[i].velocity - vel) / delta_t;
             if (vel > max_vel_ || fabs(acc) > max_acc_) {
-                dist.push_back(10000);
+                continue;
             } else {
-                dist.push_back(fabs(acc) + delta_t);
+                double dist = fabs(acc) + delta_t;
+                if(dist < min_dist){
+                    min_dist = dist;
+                    min_index = i;
+                }
             }
         }
     }
-    int min_index = getMinIndex(dist);
-    if (dist[min_index] >= 10000) {
+    if (min_index==-1) {
         *node_valid = false;
+        return;
     } else {
         *node_valid = true;
+        *nearest_node = tree_[min_index];
+        return;
     }
-    *nearest_node = tree_[min_index];
 }
 
 void RRT::Steer(const Node& sample, const Node& nearest_node,
