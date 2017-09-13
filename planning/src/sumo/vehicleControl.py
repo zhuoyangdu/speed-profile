@@ -42,7 +42,7 @@ def init():
     if options.gui:
         sumoExe = 'sumo-gui'
     sumoBinary = checkBinary(sumoExe)
-    file_path = os.getcwd() + '/planning/data/crossing.sumocfg'
+    file_path = os.getcwd() + '/planning/data/cycle8.sumocfg'
     try:
         traci.start([sumoBinary, "-c", file_path])
     except Exception as e:

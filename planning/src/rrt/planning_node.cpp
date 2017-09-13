@@ -101,6 +101,7 @@ void PlanningNode::GetGeometryPath() {
 void PlanningNode::ParamConfig() {
     ros::param::get("~single", single_test_);
     ros::param::get("~planning_path", planning_path_);
+    ros::param::get("~road_file", road_file_);
     if (single_test_) {
         std::string single_test_case;
         int collision_number;

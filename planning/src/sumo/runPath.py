@@ -5,6 +5,7 @@ import os
 import sys
 import subprocess
 import time
+import math
 
 # we need to import python modules from the $SUMO_HOME/tools directory
 try:
@@ -27,24 +28,24 @@ sumoExe = 'sumo'
 if options.gui:
     sumoExe = 'sumo-gui'
 sumoBinary = checkBinary(sumoExe)
-traci.start([sumoBinary, "-c", "../data/crossing.sumocfg"])
+traci.start([sumoBinary, "-c", "../../data/cycle8.sumocfg"])
 print "Traci initialized."
 
-path_file = open("../data/RoadXY.txt", "w")
+path_file = open("../../data/path.txt", "w")
 
 step = 0
 while step < 5000:
     try:
         traci.simulationStep()
         step = step + 1
-        [x,y] = traci.vehicle.getPosition("veh5")
-        ang = traci.vehicle.getAngle("veh5")
-        length = traci.vehicle.getLength("veh5")
-        shape = traci.vehicle.getShapeClass("veh5")
-        dis = traci.vehicle.getDistance("veh5")
-        log_path = "%f\t%f\t%f\t%f\n" %(x,y,ang,dis)
+        [x,y] = traci.vehicle.getPosition("veh1")
+        ang = traci.vehicle.getAngle("veh1")
+        length = traci.vehicle.getLength("veh1")
+        shape = traci.vehicle.getShapeClass("veh1")
+        dis = traci.vehicle.getDistance("veh1")
+        log_path = "%f\t%f\t%f\t%f\n" %(x,y,ang/180*math.pi,dis)
         path_file.write(log_path)
-        print "route02:", x,y,ang,dis
+        print "route01:", x,y,ang,dis
         print "shape:", shape
     except Exception as e:
         print e

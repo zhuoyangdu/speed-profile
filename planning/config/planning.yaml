@@ -1,5 +1,6 @@
-single : True
-rrt/max_failed_attemptes : 10000
+single : False
+road_file : 'cycle.txt'
+rrt/max_failed_attemptes : 5000
 rrt/t_max : 8
 rrt/s_max : 100
 rrt/t_goal : 5
