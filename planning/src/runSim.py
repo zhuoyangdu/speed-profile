@@ -1,7 +1,7 @@
 import rospy
 import time
 import math
-
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -76,8 +76,11 @@ if __name__=="__main__":
     pub_obstacle = rospy.Publisher("/simulation/obstacles", ObstacleMap, queue_size = 10)
     rate = rospy.Rate(10)
 
+    path = os.getcwd() + '/planning/log/vehicle_log'
+    file_path = open(path, 'w')
+    trajectory_log = open(os.getcwd() + '/planning/log/trajectory_log','w')
+
     while not rospy.is_shutdown():
-        vehicleControl.do_step(trajectory, trajectory_ready)
         localize = vehicleControl.get_localize()
         obs_map = vehicleControl.get_obstacles()
         # print_map(localize, obs_map)
@@ -85,6 +88,16 @@ if __name__=="__main__":
         print obs_map
         pub_localize.publish(localize)
         pub_obstacle.publish(obs_map)
+        vehicleControl.do_step(trajectory, trajectory_ready)
+        log_path = "%f\t%f\t%f\t%f\t%f\n" %(localize.timestamp,localize.x, localize.y, localize.velocity,localize.acceleration)
+        file_path.write(log_path)
         rate.sleep()
+        trajectory_log.write("trajectory\n")
+        for pose in trajectory.poses:
+            log_path = "%f\t%f\n" %(pose.timestamp, pose.velocity)
+            print pose.velocity
+            trajectory_log.write(log_path)
 
     vehicleControl.destroy()
+    file_path.close()
+    trajectory_log.close()

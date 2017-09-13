@@ -40,6 +40,7 @@ void RRT::newFile() {
         ROS_INFO("no file!");
     }
     out_file_.close();
+
 }
 
 void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
@@ -89,7 +90,8 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     double length = 0;
     Node first_node(0, s0);
     first_node.velocity = vehicle_state.velocity;
-    first_node.acceleration = vehicle_state.acceleration;
+    //first_node.acceleration = vehicle_state.acceleration;
+    first_node.acceleration = 0;
     first_node.self_id = 0;
     first_node.parent_id = -1;
     tree_ = {first_node};

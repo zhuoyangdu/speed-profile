@@ -4,9 +4,14 @@
   <vType accel="2.0" decel="6.0" id="CarB" length="7.5" minGap="2.5" maxSpeed="15.0" sigma="0.5" guiShape="evehicle" />
   <vType accel="1.0" decel="5.0" id="CarC" length="5.0" minGap="2.5" maxSpeed="15.0" sigma="0.5" guiShape="evehicle"  />
 
-  <route id="route01" edges="L22 L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 L20 L21"/>
+  <route id="route01" edges="L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 L20 L21"/>
   <route id="route02" edges="-L22 -L21 -L20 -L19 -L18 -L17 -L16 -L15 -L14 -L13 -L12 -L11 -L10 -L9 -L8 -L7 -L6 -L5 -L4 -L3 -L2 -L1"/>
+  <route id="route03" edges="L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 L20 L21"/>
 
   <vehicle depart="54000" id="veh1" route="route01" type="CarA" color="1,0,0" departPos="0" departSpeed = "5"/> 
   <vehicle depart="54000" departSpeed="4" id="veh2" route="route02" type="CarC" color="1,0,0" departPos="0"/>
+  <vehicle depart="54000" id="veh3" route="route01" type="CarA" color="1,0,0" departPos="100" departSpeed = "5"/> 
+  <vehicle depart="54000" id="veh4" route="route01" type="CarA" departPos="200" color="1,0,0" departSpeed = "7"/> 
+    <vehicle depart="54000" departSpeed="4" id="veh5" route="route02" type="CarC" color="1,0,0" departPos="100"/>
+      <vehicle depart="54000" departSpeed="4" id="veh6" route="route02" type="CarC" color="1,0,0" departPos="200"/>
 </routes>

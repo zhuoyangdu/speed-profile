@@ -1,4 +1,4 @@
-INIT_POS = "480"
+INIT_POS = "450"
 INIT_SPEED = "6"
 INIT_ROUTE = "route02"
 

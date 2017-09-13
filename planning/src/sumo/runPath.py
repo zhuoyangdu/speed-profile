@@ -45,8 +45,8 @@ while step < 5000:
         dis = traci.vehicle.getDistance("veh1")
         log_path = "%f\t%f\t%f\t%f\n" %(x,y,ang/180*math.pi,dis)
         path_file.write(log_path)
-        print "route01:", x,y,ang,dis
-        print "shape:", shape
+        #print "route01:", x,y,ang,dis
+        #print "shape:", shape
     except Exception as e:
         print e
         break

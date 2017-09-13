@@ -1,4 +1,5 @@
 #include "planning_node.h"
+using namespace std;
 
 namespace planning {
 
@@ -29,7 +30,9 @@ void PlanningNode::Start() {
                 planning::Trajectory trajectory;
                 rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                              curve_x_, curve_y_, &trajectory);
-                pub_trajectory_.publish(trajectory);
+             if (!trajectory.poses.empty()){
+                    pub_trajectory_.publish(trajectory);
+            }
             }
             loop_rate.sleep();
         }
@@ -72,6 +75,7 @@ void PlanningNode::GetGeometryPath() {
     std::vector<double> xs, ys;
     std::string line;
     std::string file_name = planning_path_ + "/data/path/" + road_file_;
+    cout << "file name" << file_name << endl;
     std::ifstream file(file_name);
     if (file.is_open()) {
         ROS_INFO("Reading road config.");
@@ -85,6 +89,7 @@ void PlanningNode::GetGeometryPath() {
             double x, y;
             x = atof(ps[0].c_str());
             y = atof(ps[1].c_str());
+            cout << "x:" << x << ", y:" << y << endl;
             xs.push_back(x);
             ys.push_back(y);
         }

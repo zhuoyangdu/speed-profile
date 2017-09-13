@@ -42,7 +42,7 @@ def init():
     if options.gui:
         sumoExe = 'sumo-gui'
     sumoBinary = checkBinary(sumoExe)
-    file_path = os.getcwd() + '/planning/data/cycle8.sumocfg'
+    file_path = os.getcwd() + '/planning/data/crossing.sumocfg'
     try:
         traci.start([sumoBinary, "-c", file_path])
     except Exception as e:
@@ -79,6 +79,7 @@ def get_localize():
     localize.velocity = traci.vehicle.getSpeed(self_veh.get_id())
     localize.timestamp = float(traci.simulation.getCurrentTime()/1000.0)
     localize.length = traci.vehicle.getDistance(self_veh.get_id())
+    localize.acceleration = traci.vehicle.getAccel(self_veh.get_id())
     return localize
 
 def do_step(trajectory, trajectory_ready):
