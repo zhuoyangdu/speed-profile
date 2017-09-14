@@ -15,3 +15,8 @@ while 1
         path = [path;sline];
     end
 end
+
+a = load('../../log/vehicle_log');
+tt = a(:,1);
+vv = a(:,4);
+plot(tt,vv, 'LineWidth',3);

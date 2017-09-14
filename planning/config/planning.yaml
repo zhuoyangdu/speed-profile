@@ -10,7 +10,7 @@ rrt/max_acc : 5
 rrt/max_vel : 15
 rrt/kr : 100
 rrt/ks : 5
-rrt/kv : 3
+rrt/kv : 5
 rrt/lower_range_t : 1
 rrt/lower_range_s : 10
 rrt/upper_range_t : 1

@@ -30,7 +30,7 @@ class PlanningNode {
     ros::Subscriber sub_obstacle_;
 
     bool single_test_ = true;
-    double rate_ = 1;
+    double rate_ =  2;
     std::string road_file_;
 
     std::vector<DynamicObstacle> single_test_obstacles_;

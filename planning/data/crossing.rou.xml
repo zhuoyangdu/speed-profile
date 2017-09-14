@@ -10,6 +10,6 @@
  <route id = "route04" edges = "L2" />
 
   <vehicle depart="54000" id="veh1" route="route01" type="CarA" color="1,0,0" departPos="450" departSpeed = "5"/> 
-  <vehicle depart="54000" departSpeed="15" id="veh2" route="route03" type="CarC" color="1,0,0" departPos="450"/>
+  <vehicle depart="54000" departSpeed="15" id="veh2" route="route03" type="CarC" color="1,0,0" departPos="430"/>
   <vehicle depart="54000" departSpeed="7" id="veh3" route="route04" type="CarC" color="1,0,0" departPos="20"/>
 </routes>

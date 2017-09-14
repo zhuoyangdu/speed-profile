@@ -79,26 +79,25 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     curve_x_ = curve_x;
     curve_y_ = curve_y;
     double s0 = GetGeometryPathLength(vehicle_state.x, vehicle_state.y);
-    cout << "GetGeometryPathLength time:" << double(clock()-temp_t) / CLOCKS_PER_SEC << endl;
 
     // Initialize obstacles.
     clock_t temp_t1 = clock();
     obstacles.SetObstacles(obstacle_map);
     obstacles.InitializeDistanceMap(vehicle_state, curve_x_, curve_y_, s0);
-    cout << "InitializeDistanceMap time:" << double(clock()-temp_t1) / CLOCKS_PER_SEC << endl;
+    //cout << "InitializeDistanceMap time:" << double(clock()-temp_t1) / CLOCKS_PER_SEC << endl;
 
-    temp_t1 = clock();
+    //temp_t1 = clock();
     // obstacles.ComputeTTCMap(s0, curve_x_, curve_y_);
-    cout << "TTC map time:" << double(clock()-temp_t1)/CLOCKS_PER_SEC << endl;
+    //cout << "TTC map time:" << double(clock()-temp_t1)/CLOCKS_PER_SEC << endl;
 
-    cout << "Initial time:" << double(clock() - temp_t) / CLOCKS_PER_SEC << endl;
+    //cout << "Initial time:" << double(clock() - temp_t) / CLOCKS_PER_SEC << endl;
 
     // Initialize tree.
     double length = 0;
     Node first_node(0, s0);
     first_node.velocity = vehicle_state.velocity;
-    //first_node.acceleration = vehicle_state.acceleration;
-    first_node.acceleration = 0;
+    first_node.acceleration = vehicle_state.acceleration;
+    //first_node.acceleration = 0;
     first_node.self_id = 0;
     first_node.parent_id = -1;
     tree_ = {first_node};
@@ -145,8 +144,8 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                     min_cost = cost_sum;
 
                     std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
-                    out_file_ << "path\n";
-                    for (int i = 0; i < path.size(); i++) {
+                     out_file_ << "path\n";
+                     for (int i = 0; i < path.size(); i++) {
                         out_file_ << path[i].time << "\t" << path[i].distance << "\t" <<
                                   path[i].velocity << "\n";
                     }
@@ -155,10 +154,10 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
                               << path_cost[1]*ks_ << "," << path_cost[2]*kv_ << "\n";
                     out_file_.close();
                 }
-                if (n_path > 10) {
-                    cout << "The final path is:" << endl;
-                    PrintNodes(min_path);
-                    cout << "The cost of the final path is:" << min_cost << endl;
+                if (n_path > 20) {
+                    // cout << "The final path is:" << endl;
+                    // PrintNodes(min_path);
+                    // cout << "The cost of the final path is:" << min_cost << endl;
                     break;
                 }
             }
@@ -380,9 +379,9 @@ void RRT::GetNearestNode(const Node& sample,
                 if(dist < min_dist){
                     min_dist = dist;
                     min_index = i;
-                    if (fabs(acc) < 1 && delta_t < 2){
-                        break;
-                    }
+                   // if (fabs(acc) < 1 && delta_t < 2){
+                    //    break;
+                   // }
                 }
             }
         }
@@ -433,6 +432,7 @@ bool RRT::VertexFeasible(const Node& parent_node, const Node& child_node) {
         ROS_ERROR("error in find nodes.");
         return false;
     }
+
     double vel = ComputeVelocity(parent_node, child_node);
     if (vel > max_vel_) {
         un_vel += 1;
@@ -444,6 +444,13 @@ bool RRT::VertexFeasible(const Node& parent_node, const Node& child_node) {
         un_acc += 1;
         return false;
     }
+
+    if(parent_node.self_id == 0){
+        if(abs(acc - parent_node.acceleration) > 2.5){
+            return false;
+        }
+    }
+
     bool collision_free = obstacles.CollisionFree(parent_node, child_node,
                           curve_x_, curve_y_);
     if (!collision_free) {
@@ -492,8 +499,9 @@ double RRT::GetPathSmoothness(const std::deque<Node>& path) {
     for (int i = 0; i < vector_acc.size(); i++) {
         variance_acc = variance_acc + abs(vector_acc[i] - average_acc);
     }
+    // variance_acc = variance_acc + abs(vector_acc[0]-average_acc)*10;
     variance_acc = abs(variance_acc) / vector_acc.size() * 10;
-
+    variance_acc = abs(vector_acc[1] - vector_acc[0]) + variance_acc;
     return variance_acc;
 }
 

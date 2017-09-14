@@ -71,6 +71,8 @@ def init_vehicle():
     print "Self vehicle initialized."
 
     #print traci.vehicle.getShapeClass(self_veh.get_id())
+previous_time = 0
+previous_velocity = 0
 
 def get_localize():
     localize = Pose()
@@ -79,7 +81,15 @@ def get_localize():
     localize.velocity = traci.vehicle.getSpeed(self_veh.get_id())
     localize.timestamp = float(traci.simulation.getCurrentTime()/1000.0)
     localize.length = traci.vehicle.getDistance(self_veh.get_id())
-    localize.acceleration = traci.vehicle.getAccel(self_veh.get_id())
+    #localize.acceleration = traci.vehicle.getAccel(self_veh.get_id())
+    global previous_velocity, previous_time
+    if previous_time==0:
+        localize.acceleration = 0
+    else:
+        localize.acceleration = (previous_velocity- localize.velocity)/(previous_time-localize.timestamp)
+        print "acceleration :", localize.acceleration
+    previous_velocity = localize.velocity
+    previous_time = localize.timestamp
     return localize
 
 def do_step(trajectory, trajectory_ready):
@@ -87,14 +97,22 @@ def do_step(trajectory, trajectory_ready):
     tc = float(traci.simulation.getCurrentTime()/1000.0)
 
     if trajectory_ready:
-        index = 0
+        index1 = 0
         for k in range(0, len(trajectory.poses)):
-            if tc < trajectory.poses[k].timestamp:
-                index = k
+            if  trajectory.poses[k].timestamp > tc:
+                index1 = k
                 break
-        vel = trajectory.poses[index].velocity
+        index2 = k-1
+        t1 = trajectory.poses[index1].timestamp
+        t2 = trajectory.poses[index2].timestamp
+        v1 = trajectory.poses[index1].velocity
+        v2 = trajectory.poses[index2].velocity
 
-        print "time", traci.simulation.getCurrentTime(),"tc:", tc, "ref_vel:", vel, "current velocity:", traci.vehicle.getSpeed(self_veh.get_id())
+        vel = (v1-v2)*(tc-t2)/(t1-t2) + v2
+
+        print "t1:", t1, "v1", v1, "t2:",t2, "v2:",v2
+        print "tc:", tc, "vr:", vel, "vc:", traci.vehicle.getSpeed(self_veh.get_id())
+
         traci.vehicle.setSpeed(self_veh.get_id(), vel)
     traci.simulationStep()
 
