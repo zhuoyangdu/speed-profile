@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Boost REQUIRED COMPONENTS system)
 
-ADD_DEFINITIONS(-std=c++11)
+ADD_DEFINITIONS(-std=c++11 -O3 -DNDEBUG)
 
 add_message_files(
     FILES

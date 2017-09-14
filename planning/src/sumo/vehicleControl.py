@@ -70,7 +70,7 @@ def init_vehicle():
             print "vel:", traci.vehicle.getSpeed(veh)
     print "Self vehicle initialized."
 
-    print traci.vehicle.getShapeClass(self_veh.get_id())
+    #print traci.vehicle.getShapeClass(self_veh.get_id())
 
 def get_localize():
     localize = Pose()
@@ -83,7 +83,7 @@ def get_localize():
     return localize
 
 def do_step(trajectory, trajectory_ready):
-    print traci.simulation.getCurrentTime()
+    #print traci.simulation.getCurrentTime()
     tc = float(traci.simulation.getCurrentTime()/1000.0)
 
     if trajectory_ready:
@@ -93,7 +93,8 @@ def do_step(trajectory, trajectory_ready):
                 index = k
                 break
         vel = trajectory.poses[index].velocity
-        print "tc:", tc, "ref_vel:", vel, "current velocity:", traci.vehicle.getSpeed(self_veh.get_id())
+
+        print "time", traci.simulation.getCurrentTime(),"tc:", tc, "ref_vel:", vel, "current velocity:", traci.vehicle.getSpeed(self_veh.get_id())
         traci.vehicle.setSpeed(self_veh.get_id(), vel)
     traci.simulationStep()
 

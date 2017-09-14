@@ -30,7 +30,14 @@ void PlanningNode::Start() {
                 planning::Trajectory trajectory;
                 rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                              curve_x_, curve_y_, &trajectory);
-             if (!trajectory.poses.empty()){
+                ROS_INFO("generate a traj.");
+                if (!trajectory.poses.empty()){
+                    cout << "timestamp:" << vehicle_state_.timestamp <<
+                        ", current vel:" << vehicle_state_.velocity << endl;
+                    for(int i = 0; i < trajectory.poses.size(); i++){
+                        cout << "poses:" << trajectory.poses[i].timestamp <<
+                            ", " << trajectory.poses[i].velocity << endl;
+                    }
                     pub_trajectory_.publish(trajectory);
             }
             }

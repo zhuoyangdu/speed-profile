@@ -30,8 +30,8 @@ bool Obstacles::CollisionFree(const Node& parent_node, const Node& child_node,
             double s = parent_node.distance + vel * (t - parent_node.time);
             double vehicle_x = curve_x(s);
             double vehicle_y = curve_y(s);
-            double dist = sqrt(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
-                               2));
+            double dist = pow(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
+                               2), 0.5);
             t = t + 0.5;
             if (dist < collision_distance_) {
                 return false;
@@ -108,8 +108,8 @@ void Obstacles::InitializeDistanceMap(
                 planning::DynamicObstacle obs = obstacles_[k];
                 double obs_pos_x = obs.x + obs.velocity * t * sin(obs.theta);
                 double obs_pos_y = obs.y + obs.velocity * t * cos(obs.theta);
-                double dis = sqrt(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
-                                  2));
+                double dis = pow(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
+                                  2),0.5);
                 if (ss > dis) ss = dis;
             }
             distance_map_[i][j] = ss;
@@ -126,8 +126,8 @@ double Obstacles::EuclideanDisToObs(double x, double y, double t) {
                            obstacles_[k].theta);
         double obs_y = obstacles_[k].y + obstacles_[k].velocity * t * cos(
                            obstacles_[k].theta);
-        double od = sqrt(pow(x - obs_x, 2) + pow(y - obs_y,
-                         2));
+        double od = pow(pow(x - obs_x, 2) + pow(y - obs_y,
+                         2),0.5);
         if (dis > od) dis = od;
     }
     return dis;

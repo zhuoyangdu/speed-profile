@@ -20,7 +20,7 @@ def callback_trajectory(msg):
     trajectory = msg
     global trajectory_ready
     trajectory_ready = True
-    print "callback traj:", trajectory
+    #print "callback traj:", trajectory
 
 def init_sim():
     vehicleControl.init()
@@ -55,14 +55,14 @@ def print_map(localize, obs_map):
     plt.plot([0,1000],[500,500],"y--",lw=0.5)
     plt.xlim([400,600])
     plt.ylim([400,600])
-    print "self:", localize.theta
+    #print "self:", localize.theta
     [x,y] = plot_car(localize)
     plt.plot(x,y,"r")
     # plt.plot(localize.x, localize.y,'ro')
     for obs in obs_map.dynamic_obstacles:
         [x,y] = plot_car(obs)
         plt.plot(x,y,"b")
-        print obs.id, obs.x, obs.y, obs.theta
+        #print obs.id, obs.x, obs.y, obs.theta
     plt.pause(0.001)
     plt.draw()
     return
@@ -84,8 +84,8 @@ if __name__=="__main__":
         localize = vehicleControl.get_localize()
         obs_map = vehicleControl.get_obstacles()
         # print_map(localize, obs_map)
-        print localize
-        print obs_map
+        #print localize
+        #print obs_map
         pub_localize.publish(localize)
         pub_obstacle.publish(obs_map)
         vehicleControl.do_step(trajectory, trajectory_ready)
@@ -95,7 +95,7 @@ if __name__=="__main__":
         trajectory_log.write("trajectory\n")
         for pose in trajectory.poses:
             log_path = "%f\t%f\n" %(pose.timestamp, pose.velocity)
-            print pose.velocity
+            #print pose.velocity
             trajectory_log.write(log_path)
 
     vehicleControl.destroy()
