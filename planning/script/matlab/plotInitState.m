@@ -1,4 +1,4 @@
-figure(5);
+figure(4);
 plotEnv;
 
 plot(road(:,1), road(:,2), 'r');

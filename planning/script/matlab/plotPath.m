@@ -1,9 +1,8 @@
 function plotPath(path)
-figure(4);
+figure(3);
 xlabel('t(s)');
 ylabel('v(m/s)');
 grid on;
-title('path');
 hold on;
 for i = 1:1:length(path(:,1))-1
     cn = path(i,:);

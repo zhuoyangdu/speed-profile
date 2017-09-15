@@ -22,7 +22,7 @@ for i = 1:1:length(t)
     for j = 1:1:length(s)
         if B(i,j) < danger_distance
             figure(2);
-            plot(i*0.1, j + veh_s0, 'g.');
+            plot(i*0.1, j + veh_s0, '.','color',[0.8,0.8,0.8]);
             %fprintf('%f,%f\n',i,j);
         end
         

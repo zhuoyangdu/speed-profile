@@ -1,5 +1,5 @@
 single : True
-rrt/max_failed_attemptes : 10000
+rrt/max_failed_attemptes : 50000
 rrt/t_max : 8
 rrt/s_max : 100
 rrt/t_goal : 5
@@ -24,7 +24,7 @@ rrt/car_width : 3
 rrt/collision_distance : 4.5
 rrt/safe_ttc : 5
 
-single_test/single_test_case : 'crossing_case'
+single_test/single_test_case : 'emergency_stop_case'
 single_test/collision_number : 1
 
 emergency_stop_case/x0 : 520
