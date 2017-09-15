@@ -59,8 +59,8 @@ class Obstacles {
     double init_vehicle_path_length_;
     double epsilon_ = 1e3;
     std::string planning_path_;
-    const double kDeltaT = 0.5;
-    const double kDeltaS = 2.0;
+    const double kDeltaT = 0.1;
+    const double kDeltaS = 1.0;
 
     void recordDistanceMap();
     double EuclideanDisToObs(double x, double y, double t);

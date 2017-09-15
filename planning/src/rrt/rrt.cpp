@@ -201,8 +201,8 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
 
     if (n_path > 0) {
         cout << "min path:" << min_path.size() << endl;
-        // std::deque<Node> smoothing_path = PostProcessing(min_path);
-        // SendVisualization(smoothing_path, curve_x_, curve_y_);
+        std::deque<Node> smoothing_path = PostProcessing(min_path);
+        SendVisualization(smoothing_path, curve_x_, curve_y_);
 
         std::vector<planning::Pose> poses;
         for (int i = 0; i < min_path.size(); i++) {

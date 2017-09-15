@@ -30,7 +30,7 @@ void PlanningNode::Start() {
                 planning::Trajectory trajectory;
                 rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                              curve_x_, curve_y_, &trajectory);
-                ROS_INFO("generate a traj.");
+                // ROS_INFO("generate a traj.");
                 if (!trajectory.poses.empty()){
                     cout << "timestamp:" << vehicle_state_.timestamp <<
                         ", current vel:" << vehicle_state_.velocity << endl;
@@ -96,7 +96,7 @@ void PlanningNode::GetGeometryPath() {
             double x, y;
             x = atof(ps[0].c_str());
             y = atof(ps[1].c_str());
-            cout << "x:" << x << ", y:" << y << endl;
+            //cout << "x:" << x << ", y:" << y << endl;
             xs.push_back(x);
             ys.push_back(y);
         }
