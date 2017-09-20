@@ -1,55 +1,63 @@
+// Copyright [2017] <Zhuoyang Du>
+
+#include <string>
 #include "planning_node.h"
 using namespace std;
 
 namespace planning {
 
 PlanningNode::PlanningNode(const ros::NodeHandle& nh) {
-
+    // Read the planning parameters and environment settings.
     ParamConfig();
 
+    // Import the given reference path.
     GetGeometryPath();
 
+    // Initialize the rrt planner.
     rrt_ptr_ = std::move(std::unique_ptr<RRT> (new RRT));
 }
 
 void PlanningNode::Start() {
+    // For replanning.
+    // Publish trajectory for the vehicle.
     pub_trajectory_ =
         nh_.advertise<planning::Trajectory>("/planning/trajectory", rate_);
+
+    // Subscribe vehicle state and traffic information.
     sub_vehicle_state_ =
         nh_.subscribe("/simulation/localize", vehicle_state_queue_size_,
                       &PlanningNode::VehicleStateCallback, this);
     sub_obstacle_ =
         nh_.subscribe("/simulation/obstacles", obstacles_queue_size_,
                       &PlanningNode::ObstacleCallback, this);
+
+    // Set the replanning period.
     ros::Rate loop_rate(rate_);
 
+    // There are two types of simulation: single test for debug and replanning test
+    // for real-time traffic. The information of single test is given by the
+    // config file, and the replanning test subscribes information from the
+    // simulation environment SUMO.
     if (!single_test_) {
         while (ros::ok()) {
             ros::spinOnce();
+            // Wait for localize message and traffic condition message.
             if (localize_ready_ && obstacle_ready_) {
                 planning::Trajectory trajectory;
                 rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                              curve_x_, curve_y_, &trajectory);
-                // ROS_INFO("generate a traj.");
-                if (!trajectory.poses.empty()){
-                    cout << "timestamp:" << vehicle_state_.timestamp <<
-                        ", current vel:" << vehicle_state_.velocity << endl;
-                    for(int i = 0; i < trajectory.poses.size(); i++){
-                        cout << "poses:" << trajectory.poses[i].timestamp <<
-                            ", " << trajectory.poses[i].velocity << endl;
-                    }
-                    pub_trajectory_.publish(trajectory);
-            }
+                pub_trajectory_.publish(trajectory);
             }
             loop_rate.sleep();
         }
     } else {
+        // The single test mode only generates a trajectory for one period.
         vehicle_state_ = single_test_vehicle_;
         obstacle_map_.dynamic_obstacles = single_test_obstacles_;
-
         planning::Trajectory trajectory;
         rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                      curve_x_, curve_y_, &trajectory);
+        return;
     }
 }
 
@@ -82,10 +90,8 @@ void PlanningNode::GetGeometryPath() {
     std::vector<double> xs, ys;
     std::string line;
     std::string file_name = planning_path_ + "/data/path/" + road_file_;
-    cout << "file name" << file_name << endl;
     std::ifstream file(file_name);
     if (file.is_open()) {
-        ROS_INFO("Reading road config.");
         int i;
         while (getline(file, line)) {
             std::vector<std::string> ps;
@@ -96,7 +102,6 @@ void PlanningNode::GetGeometryPath() {
             double x, y;
             x = atof(ps[0].c_str());
             y = atof(ps[1].c_str());
-            //cout << "x:" << x << ", y:" << y << endl;
             xs.push_back(x);
             ys.push_back(y);
         }
@@ -105,9 +110,7 @@ void PlanningNode::GetGeometryPath() {
         ROS_ERROR("cannot open path config file.");
     }
     double path_length;
-    //Spline::fitCurve();
     Spline::fitCurve(xs, ys, &curve_x_, &curve_y_, &path_length);
-
 }
 
 void PlanningNode::ParamConfig() {
@@ -156,24 +159,23 @@ void PlanningNode::ParamConfig() {
         } else {
             ROS_ERROR("The number of obstacle is out of range.");
         }
-        // }
         single_test_obstacles_ = dynamic_obstacles;
+        std::cout << "--------------------------------" << std::endl;
         std::cout << "Single test case:" << single_test_case << std::endl;
         std::cout << "Initial state:" << std::endl;
         std::cout << "  vehicle state: " << single_test_vehicle_.x << ", " <<
                   single_test_vehicle_.y << ", " << single_test_vehicle_.theta << ", " <<
                   single_test_vehicle_.velocity << std::endl;
-        std::cout << "Obstacles: " <<  collision_number << " in total" << std::endl;
+        std::cout << "Obstacles: " << std::endl;
         for (int i = 0; i < collision_number; i++) {
             std::cout << "   obstacle " << i + 1 << ": " << dynamic_obstacles[i].x << ", "
                       << dynamic_obstacles[i].y << ", " << dynamic_obstacles[i].theta <<
                       ", " << dynamic_obstacles[i].velocity << std::endl;
         }
-
+        std::cout << "--------------------------------" << std::endl;
     }
 }
-
-} // namespace planning
+}  // namespace planning
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "planning_node");

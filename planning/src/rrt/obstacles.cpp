@@ -31,7 +31,7 @@ bool Obstacles::CollisionFree(const Node& parent_node, const Node& child_node,
             double vehicle_x = curve_x(s);
             double vehicle_y = curve_y(s);
             double dist = pow(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
-                               2), 0.5);
+                              2), 0.5);
             t = t + 0.5;
             if (dist < collision_distance_) {
                 return false;
@@ -64,10 +64,8 @@ double Obstacles::RiskAssessment(const std::deque<Node>& path,
         }
     }
     double risk;
-    // cout << "safe_ttc:" << safe_ttc_ << ",max_ttc:" << max_ttc << endl;
     if (max_ttc < safe_ttc_) {
         risk = 1 / max_ttc;
-        // cout << "risk" << risk << endl;
     } else {
         risk = 0;
     }
@@ -109,7 +107,7 @@ void Obstacles::InitializeDistanceMap(
                 double obs_pos_x = obs.x + obs.velocity * t * sin(obs.theta);
                 double obs_pos_y = obs.y + obs.velocity * t * cos(obs.theta);
                 double dis = pow(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
-                                  2),0.5);
+                                 2), 0.5);
                 if (ss > dis) ss = dis;
             }
             distance_map_[i][j] = ss;
@@ -127,7 +125,7 @@ double Obstacles::EuclideanDisToObs(double x, double y, double t) {
         double obs_y = obstacles_[k].y + obstacles_[k].velocity * t * cos(
                            obstacles_[k].theta);
         double od = pow(pow(x - obs_x, 2) + pow(y - obs_y,
-                         2),0.5);
+                                                2), 0.5);
         if (dis > od) dis = od;
     }
     return dis;
@@ -146,7 +144,7 @@ double Obstacles::ComputeTTC(double node_time, double node_distance,
         double t = tt * 0.1;
         double veh_x = curve_x(node_distance + t * node_vel);
         double veh_y = curve_y(node_distance + t * node_vel);
-        double distance = EuclideanDisToObs(veh_x, veh_y, t+node_time);
+        double distance = EuclideanDisToObs(veh_x, veh_y, t + node_time);
         if (distance < collision_distance_) {
             ttc = t;
             break;

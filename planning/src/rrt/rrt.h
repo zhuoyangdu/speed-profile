@@ -62,12 +62,6 @@ class RRT {
 
     double WeightingCost(std::vector<double>& cost);
 
-    void PrintNodes(std::vector<Node>& nodes);
-
-    void PrintNodes(std::deque<Node>& nodes);
-
-    void PrintCost(std::vector<double>& cost);
-
     bool ReachingGoal(const Node& node);
 
     std::vector<double> GetPathCost(const std::deque<Node>& path);
@@ -76,9 +70,18 @@ class RRT {
 
     double GetPathVelError(const std::deque<Node>& path);
 
-    std::string int2string(int value);
-
     void newFile();
+
+    void SendVisualization(const std::deque<Node>& final_path,
+                           const Spline& curve_x,
+                           const Spline& curve_y);
+
+    void ChooseParent(const Node& nearest_node, Node* new_node);
+
+    void Rewire(Node& new_node);
+
+    std::string int2string(int value);
+    std::deque<Node>  PostProcessing(std::deque<Node>& path);
   private:
 
     Obstacles obstacles;
@@ -116,31 +119,6 @@ class RRT {
     std::string planning_path_;
     std::string file_name_;
     std::ofstream out_file_;
-
-    int un_vel = 0;
-    int un_acc = 0;
-    int un_collision = 0;
-    int choose_par_un_feasible = 0;
-    int rewire_un_feasible = 0;
-    int change_parent = 0;
-    int choose_parent = 0;
-    int rewire_number = 0;
-    int rewire_suc = 0;
-
-    double time_nearest_ = 0;
-    double time_steer_ = 0;
-    double time_feasible_ = 0;
-    double time_choose_parent_ = 0;
-    double time_rewire_ = 0;
-
-    std::deque<Node>  PostProcessing(std::deque<Node>& path);
-    void SendVisualization(const std::deque<Node>& smoothing_path,
-                           const Spline& curve_x,
-                           const Spline& curve_y);
-
-    void ChooseParent(const Node& nearest_node, Node* new_node);
-
-    void Rewire(Node& new_node);
 };
 
 }

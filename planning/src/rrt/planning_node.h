@@ -1,5 +1,5 @@
-#ifndef PLANNING_SRC_PLANNING_NODE_H_
-#define PLANNING_SRC_PLANNING_NODE_H_
+#ifndef PLANNING_SRC_RRT_PLANNING_NODE_H_
+#define PLANNING_SRC_RRT_PLANNING_NODE_H_
 
 #include <ros/ros.h>
 #include <vector>
@@ -19,10 +19,12 @@ class PlanningNode {
     PlanningNode(const ros::NodeHandle& nh);
 
     void Start();
+
   private:
     void VehicleStateCallback(const planning::Pose& localize);
     void ObstacleCallback(const planning::ObstacleMap& obstacle_map);
     void GetGeometryPath();
+
   private:
     ros::NodeHandle nh_;
     ros::Publisher pub_trajectory_;
@@ -54,4 +56,4 @@ class PlanningNode {
 };
 }
 
-#endif //PLANNING_SRC_PLANNING_NODE_H_
+#endif //PLANNING_SRC_RRT_PLANNING_NODE_H_
