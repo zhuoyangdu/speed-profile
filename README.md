@@ -1,4 +1,4 @@
-# planning
+# Speed profile
 
 While the sumo config file changes, use the following command to generate the .net.xml file:
 ```
@@ -35,3 +35,5 @@ For python, if you want to test the running time of each function:
 ```
 python -m cProfile -s cumulative *.py
 ```
+
+The corresponding paper "Speed Profile Optimization for Autonomous Vehicles in Dynamic Traffic Scenarios" is submitted to 2018 International Conference on Robotics and Automation(ICRA).
