@@ -22,6 +22,12 @@ python planning/src/runSim.py
 ```
 or add -g after runSim.py to open the visualization of sumo.
 
+Or simply, run:
+```
+./run_sim.sh
+./run_planning.sh
+```
+the order of the two nodes does not matter.
 
 If you only want to run the planning node for single test and debug, set the param single_test true.
 
