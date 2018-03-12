@@ -35,5 +35,3 @@ For python, if you want to test the running time of each function:
 ```
 python -m cProfile -s cumulative *.py
 ```
-
-The corresponding paper "Speed Profile Optimization for Autonomous Vehicles in Dynamic Traffic Scenarios" is submitted to 2018 International Conference on Robotics and Automation(ICRA).
