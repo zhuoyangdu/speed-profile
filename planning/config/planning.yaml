@@ -1,4 +1,4 @@
-single :  True
+single :  False
 road_file : 'L7L2.txt'
 rrt/max_failed_attemptes : 10000
 rrt/t_max : 8
