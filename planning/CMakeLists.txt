@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(planning)
 
+add_subdirectory(third_party)
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
   message_generation
+  sumo
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
@@ -42,7 +45,8 @@ add_executable(planning_node
                src/rrt/spline.cpp
                src/rrt/obstacles.cpp)
 
-add_dependencies(planning_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(planning_node ${${PROJECT_NAME}_EXPORTED_TARGETS}
+                                  ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(planning_node
    ${catkin_LIBRARIES}
