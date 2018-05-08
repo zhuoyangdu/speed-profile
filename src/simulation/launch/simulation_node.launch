@@ -1,0 +1,4 @@
+<launch>
+    <node name="simulation_node" pkg="simulation" type="simulation_node" output="screen">
+    </node>
+</launch>

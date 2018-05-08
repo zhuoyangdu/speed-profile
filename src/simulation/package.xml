@@ -1,0 +1,24 @@
+<package format="2">
+  <name>simulation</name>
+  <version>1.0.0</version>
+  <description>
+     This is the robot package.
+  </description>
+  <maintainer email="zydu@zju.edu.cn">Zhuoyang Du</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>rospy</depend>
+  <depend>sumo</depend>
+
+  <build_depend>message_generation</build_depend>
+
+  <exec_depend>message_runtime</exec_depend>
+
+  <license>BSD</license>
+
+  <export>
+  </export>
+</package>
