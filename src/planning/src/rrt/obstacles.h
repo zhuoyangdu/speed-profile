@@ -4,17 +4,17 @@
 #include <cmath>
 #include "common.h"
 #include "spline.h"
-#include "planning/Pose.h"
-#include "planning/Trajectory.h"
-#include "planning/DynamicObstacle.h"
-#include "planning/ObstacleMap.h"
+#include "common/Pose.h"
+#include "common/Trajectory.h"
+#include "common/DynamicObstacle.h"
+#include "common/ObstacleMap.h"
 
 namespace planning {
 class Obstacles {
   public:
     Obstacles();
 
-    void SetObstacles(const planning::ObstacleMap& obstacle_map);
+    void SetObstacles(const common::ObstacleMap& obstacle_map);
 
     bool CollisionFree(const planning::Node& parent_node,
                        const planning::Node& child_node, const Spline& curve_x,
@@ -24,7 +24,7 @@ class Obstacles {
     double RiskAssessment(const std::deque<Node>& path,
                           const Spline& curve_x, const Spline& curve_y);
 
-    void InitializeDistanceMap(const planning::Pose& vehicle_state,
+    void InitializeDistanceMap(const common::Pose& vehicle_state,
                                const Spline& curve_x,
                                const Spline& curve_y,
                                double s0);
@@ -46,7 +46,7 @@ class Obstacles {
                        const Spline& curve_y);
 
   private:
-    std::vector<planning::DynamicObstacle> obstacles_;
+    std::vector<common::DynamicObstacle> obstacles_;
     std::vector<std::vector<double>> distance_map_;
     double danger_distance_;
     double k_risk_;

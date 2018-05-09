@@ -13,10 +13,10 @@
 #include "common.h"
 #include "spline.h"
 #include "obstacles.h"
-#include "planning/Pose.h"
-#include "planning/Trajectory.h"
-#include "planning/DynamicObstacle.h"
-#include "planning/ObstacleMap.h"
+#include "common/Pose.h"
+#include "common/Trajectory.h"
+#include "common/DynamicObstacle.h"
+#include "common/ObstacleMap.h"
 
 namespace planning {
 
@@ -24,11 +24,11 @@ class RRT {
   public:
     RRT();
 
-    void GenerateTrajectory(const planning::Pose& vehicle_state,
-                            const planning::ObstacleMap& obstacle_map,
+    void GenerateTrajectory(const common::Pose& vehicle_state,
+                            const common::ObstacleMap& obstacle_map,
                             const Spline& curve_x,
                             const Spline& curve_y,
-                            planning::Trajectory* trajectory);
+                            common::Trajectory* trajectory);
 
   private:
     double GetGeometryPathLength(double x, double y);

@@ -31,18 +31,18 @@ RRT::RRT() {
     ros::param::get("~planning_path", planning_path_);
 }
 
-void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
-                             const planning::ObstacleMap& obstacle_map,
+void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
+                             const common::ObstacleMap& obstacle_map,
                              const Spline& curve_x,
                              const Spline& curve_y,
-                             planning::Trajectory* trajectory) {
+                             common::Trajectory* trajectory) {
     cout << "Planning time:" << vehicle_state.timestamp << endl;
 
     // record.
     newFile();
     std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
     for (int i = 0; i < obstacle_map.dynamic_obstacles.size(); i++) {
-        planning::DynamicObstacle obs = obstacle_map.dynamic_obstacles[i];
+        common::DynamicObstacle obs = obstacle_map.dynamic_obstacles[i];
         out_file_ << "obstacle\t" << obs.timestamp << "\t" <<
                   obs.id << "\t" << obs.x << "\t" << obs.y << "\t"
                   << obs.theta << "\t" << obs.velocity << "\n";
@@ -128,9 +128,9 @@ void RRT::GenerateTrajectory(const planning::Pose& vehicle_state,
     if (n_path > 0) {
         std::deque<Node> final_path = PostProcessing(min_path);
         SendVisualization(final_path, curve_x_, curve_y_);
-        std::vector<planning::Pose> poses;
+        std::vector<common::Pose> poses;
         for (int i = 0; i < min_path.size(); i++) {
-            planning::Pose pose;
+            common::Pose pose;
             pose.timestamp = min_path[i].time + vehicle_state.timestamp;
             pose.velocity = min_path[i].velocity;
             pose.length = min_path[i].distance;

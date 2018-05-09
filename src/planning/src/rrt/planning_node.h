@@ -8,10 +8,10 @@
 
 #include "rrt.h"
 #include "spline.h"
-#include "planning/Pose.h"
-#include "planning/Trajectory.h"
-#include "planning/DynamicObstacle.h"
-#include "planning/ObstacleMap.h"
+#include "common/Pose.h"
+#include "common/Trajectory.h"
+#include "common/DynamicObstacle.h"
+#include "common/ObstacleMap.h"
 
 namespace planning {
 class PlanningNode {
@@ -21,8 +21,8 @@ class PlanningNode {
     void Start();
 
   private:
-    void VehicleStateCallback(const planning::Pose& localize);
-    void ObstacleCallback(const planning::ObstacleMap& obstacle_map);
+    void VehicleStateCallback(const common::Pose& localize);
+    void ObstacleCallback(const common::ObstacleMap& obstacle_map);
     void GetGeometryPath();
 
   private:
@@ -35,15 +35,15 @@ class PlanningNode {
     double rate_ =  2;
     std::string road_file_;
 
-    std::vector<DynamicObstacle> single_test_obstacles_;
-    planning::Pose single_test_vehicle_;
+    std::vector<common::DynamicObstacle> single_test_obstacles_;
+    common::Pose single_test_vehicle_;
 
     bool obstacle_ready_ = false;
     bool localize_ready_ = false;
     int vehicle_state_queue_size_ = 10;
     int obstacles_queue_size_ = 10;
-    planning::Pose vehicle_state_;
-    planning::ObstacleMap obstacle_map_;
+    common::Pose vehicle_state_;
+    common::ObstacleMap obstacle_map_;
 
     std::unique_ptr<RRT> rrt_ptr_;
 

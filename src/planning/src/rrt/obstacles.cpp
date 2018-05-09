@@ -13,14 +13,14 @@ Obstacles::Obstacles() {
     ros::param::get("~rrt/safe_ttc", safe_ttc_);
 }
 
-void Obstacles::SetObstacles(const planning::ObstacleMap& obstacle_map) {
+void Obstacles::SetObstacles(const common::ObstacleMap& obstacle_map) {
     obstacles_ = obstacle_map.dynamic_obstacles;
 }
 
 bool Obstacles::CollisionFree(const Node& parent_node, const Node& child_node,
                               const Spline& curve_x, const Spline& curve_y) {
     for (int i = 0; i < obstacles_.size(); i++) {
-        planning::DynamicObstacle obs = obstacles_[i];
+        common::DynamicObstacle obs = obstacles_[i];
         double t = parent_node.time;
         while (t <= child_node.time) {
             double obs_pos_x = obs.x + obs.velocity * t * sin(obs.theta);
@@ -74,7 +74,7 @@ double Obstacles::RiskAssessment(const std::deque<Node>& path,
 }
 
 void Obstacles::InitializeDistanceMap(
-    const planning::Pose& vehicle_state,
+    const common::Pose& vehicle_state,
     const Spline& curve_x,
     const Spline& curve_y,
     double s0) {
@@ -103,7 +103,7 @@ void Obstacles::InitializeDistanceMap(
             double vehicle_y = curve_y(s + s0);
             double ss = safe_distance_;
             for (int k = 0; k < obstacles_.size(); k++) {
-                planning::DynamicObstacle obs = obstacles_[k];
+                common::DynamicObstacle obs = obstacles_[k];
                 double obs_pos_x = obs.x + obs.velocity * t * sin(obs.theta);
                 double obs_pos_y = obs.y + obs.velocity * t * cos(obs.theta);
                 double dis = pow(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,

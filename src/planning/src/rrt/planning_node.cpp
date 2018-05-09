@@ -1,4 +1,4 @@
-// Copyright [2017] <Zhuoyang Du>
+
 
 #include <string>
 #include "planning_node.h"
@@ -21,7 +21,7 @@ void PlanningNode::Start() {
     // For replanning.
     // Publish trajectory for the vehicle.
     pub_trajectory_ =
-        nh_.advertise<planning::Trajectory>("/planning/trajectory", rate_);
+        nh_.advertise<common::Trajectory>("/planning/trajectory", rate_);
 
     // Subscribe vehicle state and traffic information.
     sub_vehicle_state_ =
@@ -43,7 +43,7 @@ void PlanningNode::Start() {
             ros::spinOnce();
             // Wait for localize message and traffic condition message.
             if (localize_ready_ && obstacle_ready_) {
-                planning::Trajectory trajectory;
+                common::Trajectory trajectory;
                 rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                              curve_x_, curve_y_, &trajectory);
                 pub_trajectory_.publish(trajectory);
@@ -54,19 +54,19 @@ void PlanningNode::Start() {
         // The single test mode only generates a trajectory for one period.
         vehicle_state_ = single_test_vehicle_;
         obstacle_map_.dynamic_obstacles = single_test_obstacles_;
-        planning::Trajectory trajectory;
+        common::Trajectory trajectory;
         rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                      curve_x_, curve_y_, &trajectory);
         return;
     }
 }
 
-void PlanningNode::VehicleStateCallback(const planning::Pose& localize) {
+void PlanningNode::VehicleStateCallback(const common::Pose& localize) {
     vehicle_state_ = localize;
     localize_ready_ = true;
 }
 
-void PlanningNode::ObstacleCallback(const planning::ObstacleMap&
+void PlanningNode::ObstacleCallback(const common::ObstacleMap&
                                     obstacle_map) {
     obstacle_map_ = obstacle_map;
     obstacle_ready_ = true;
@@ -136,11 +136,11 @@ void PlanningNode::ParamConfig() {
         ros::param::get("~" + single_test_case + "/road_file", road_file_);
 
         // Read dynamic obstacles.
-        std::vector<DynamicObstacle> dynamic_obstacles;
+        std::vector<common::DynamicObstacle> dynamic_obstacles;
         if (collision_number == 0) {
             std::cout << "No obstacle in single test." << std::endl;
         } else if (collision_number == 1 || collision_number == 2) {
-            DynamicObstacle obs;
+            common::DynamicObstacle obs;
             obs.id = "obs1";
             ros::param::get("~" + single_test_case + "/obs1_x0", obs.x);
             ros::param::get("~" + single_test_case + "/obs1_y0", obs.y);
@@ -148,7 +148,7 @@ void PlanningNode::ParamConfig() {
             ros::param::get("~" + single_test_case + "/obs1_v0", obs.velocity);
             dynamic_obstacles.push_back(obs);
             if (collision_number == 2) {
-                DynamicObstacle obs;
+                common::DynamicObstacle obs;
                 obs.id = "obs2";
                 ros::param::get("~" + single_test_case + "/obs2_x0", obs.x);
                 ros::param::get("~" + single_test_case + "/obs2_y0", obs.y);
