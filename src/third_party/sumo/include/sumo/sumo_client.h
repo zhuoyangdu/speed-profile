@@ -9,9 +9,14 @@ class SumoClient : public TraCIAPI
 public:
     SumoClient();
 
+    ~SumoClient() { close(); }
     bool Init(const std::string& host, int port);
 
     void GetVehicleList();
+
+    void SetEgoVehicle();
+
+    void GetEgoVehicleState();
 
 private:
 

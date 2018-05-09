@@ -1,0 +1,6 @@
+package simulation;
+
+message SimulationConfig
+{
+    optional int port = 1337;
+}

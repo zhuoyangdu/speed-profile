@@ -1,5 +1,3 @@
-
-
 #include <string>
 #include "planning_node.h"
 using namespace std;

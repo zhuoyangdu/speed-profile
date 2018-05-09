@@ -12,6 +12,7 @@
   <depend>std_msgs</depend>
   <depend>rospy</depend>
   <depend>sumo</depend>
+  <depend>common</depend>
 
   <build_depend>message_generation</build_depend>
 
