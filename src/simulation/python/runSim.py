@@ -8,10 +8,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import sumo.vehicleControl as vehicleControl
-from planning.msg import Pose
-from planning.msg import Trajectory
-from planning.msg import DynamicObstacle
-from planning.msg import ObstacleMap
+from common.msg import Pose
+from common.msg import Trajectory
+from common.msg import DynamicObstacle
+from common.msg import ObstacleMap
 
 CAR_WIDTH = 3
 trajectory = Trajectory()

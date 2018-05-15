@@ -6,10 +6,10 @@ import time
 import math
 from constants import *
 
-from planning.msg import Pose
-from planning.msg import Trajectory
-from planning.msg import DynamicObstacle
-from planning.msg import ObstacleMap
+from common.msg import Pose
+from common.msg import Trajectory
+from common.msg import DynamicObstacle
+from common.msg import ObstacleMap
 
 # we need to import python modules from the $SUMO_HOME/tools directory
 try:
@@ -43,7 +43,7 @@ def init():
     if options.gui:
         sumoExe = 'sumo-gui'
     sumoBinary = checkBinary(sumoExe)
-    file_path = os.getcwd() + '/planning/data/crossing.sumocfg'
+    file_path = os.getcwd() + '/../data/crossing.sumocfg'
     try:
         traci.start([sumoBinary, "-c", file_path])
     except Exception as e:

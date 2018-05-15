@@ -11,6 +11,8 @@
 
 #include "sumo/sumo_client.h"
 
+#include "simulation_conf.h"
+
 namespace simulation {
 class SimulationNode {
 public:
@@ -33,6 +35,7 @@ private:
     int trajectory_queue_size_ = 10;
     common::Trajectory trajectory_;
 
+    SimulationConf sim_conf_;
     SumoClient sumo_client_;
 
 };

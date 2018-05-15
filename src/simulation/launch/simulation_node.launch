@@ -1,4 +1,5 @@
 <launch>
     <node name="simulation_node" pkg="simulation" type="simulation_node" output="screen">
+    <rosparam command="load" file="$(find simulation)/config/simulation.yaml" />
     </node>
 </launch>

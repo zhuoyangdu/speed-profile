@@ -80,6 +80,9 @@ keep_lane_case/obs2_theta0 : 1.570
 keep_lane_case/obs2_v0 : 12
 keep_lane_case/road_file : 'L1L3.txt'
 
-
-
+junction_case/x0 : -50
+junction_case/y0 : -2.5
+junction_case/theta0 : 1.570
+junction_case/v0 : 20
+junction_case/a0 : 0
 

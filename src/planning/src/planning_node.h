@@ -6,8 +6,8 @@
 #include <memory>
 #include <fstream>
 
-#include "rrt.h"
-#include "spline.h"
+#include "rrt/rrt.h"
+#include "rrt/spline.h"
 #include "common/Pose.h"
 #include "common/Trajectory.h"
 #include "common/DynamicObstacle.h"

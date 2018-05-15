@@ -3,7 +3,11 @@ using namespace std;
 
 namespace simulation {
 SimulationNode::SimulationNode(const ros::NodeHandle& nh) {
-    sumo_client_.Init("localhost", 1337);
+    // sumo_client_.Init("localhost", sim_conf_.remote_port);
+    sumo_client_.connect("localhost", 1339);
+     std::cout << "time in ms: " << sumo_client_.simulation.getCurrentTime() << std::endl;
+     sumo_client_.simulationStep(5 * 1000);
+     std::cout << "time in ms: " << sumo_client_.simulation.getCurrentTime() << std::endl;
 }
 
 void SimulationNode::Start() {

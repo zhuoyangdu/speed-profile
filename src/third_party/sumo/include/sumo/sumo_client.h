@@ -7,10 +7,10 @@
 class SumoClient : public TraCIAPI
 {
 public:
-    SumoClient();
+    SumoClient() {};
 
     ~SumoClient() { close(); }
-    bool Init(const std::string& host, int port);
+    void Init(const std::string& host, int port);
 
     void GetVehicleList();
 

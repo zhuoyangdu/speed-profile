@@ -17,7 +17,7 @@ ADD_DEFINITIONS(-std=c++11)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES planning
-CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+CATKIN_DEPENDS roscpp rospy std_msgs message_runtime visualization_msgs
 #  DEPENDS system_lib
 )
 
@@ -26,7 +26,8 @@ include_directories(
 )
 
 add_executable(planning_node
-               src/rrt/planning_node.cpp
+               src/planning_node.cpp
+               src/planning_visualization.cpp
                src/rrt/rrt.cpp
                src/rrt/spline.cpp
                src/rrt/obstacles.cpp)

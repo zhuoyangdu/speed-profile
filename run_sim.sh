@@ -1,5 +1,8 @@
-#python2 planning/src/runSim.py -g
+#!/bin/zsh
+source devel/setup.zsh
 
-sumo -c src/simulation/data/crossing.sumocfg --remote-port 1338
+# python2 src/simulation/scripts/runSim.py -g
+
+sumo-gui -c src/simulation/data/crossing.sumocfg --remote-port 1339
 echo "sumo done"
 

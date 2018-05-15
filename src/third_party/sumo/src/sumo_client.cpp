@@ -1,20 +1,26 @@
 #include "sumo/sumo_client.h"
+#include "sumo/utils/common/SUMOTime.h"
+#include <unistd.h>
 
-SumoClient::SumoClient() {
-
-}
-
-bool SumoClient::Init(const std::string& host,
+void SumoClient::Init(const std::string& host,
                       int port) {
-    try {
-        connect(host, port);
-    } catch (tcpip::SocketException& e) {
-        std::cout << "#Error while connecting: " << e.what() << std::endl;
-        return false;
+    bool success_init = false;
+    while(!success_init) {
+        try {
+            connect(host, port);
+        } catch (tcpip::SocketException&) {
+            if (!success_init) {
+                std::cout << "#Error while connecting..." << std::endl;
+                sleep(1);
+            }
+            continue;
+        }
+        success_init = true;
+        std::cout << "Connected to sumo client." << std::endl;
     }
-    simulationStep(5000);
-    GetVehicleList();
-    return true;
+
+    //SUMOTime delta_t = 1000;
+    //simulationStep(delta_t);
 }
 
 void SumoClient::GetVehicleList() {
