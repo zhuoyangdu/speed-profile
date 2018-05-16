@@ -1,5 +1,5 @@
-single :  False
-road_file : 'L7L2.txt'
+single : True
+road_file : 'junction_path.txt'
 rrt/max_failed_attemptes : 10000
 rrt/t_max : 8
 rrt/s_max : 100
@@ -85,4 +85,3 @@ junction_case/y0 : -2.5
 junction_case/theta0 : 1.570
 junction_case/v0 : 20
 junction_case/a0 : 0
-

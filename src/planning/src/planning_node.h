@@ -6,12 +6,19 @@
 #include <memory>
 #include <fstream>
 
-#include "rrt/rrt.h"
-#include "rrt/spline.h"
+#include "rrt.h"
+#include "spline.h"
+#include "common/string.h"
+#include "common/file_config.h"
+#include "planning_visualization.h"
+#include "route.h"
+
 #include "common/Pose.h"
 #include "common/Trajectory.h"
 #include "common/DynamicObstacle.h"
 #include "common/ObstacleMap.h"
+
+#include "obstacle_config.pb.h"
 
 namespace planning {
 class PlanningNode {
@@ -23,7 +30,8 @@ class PlanningNode {
   private:
     void VehicleStateCallback(const common::Pose& localize);
     void ObstacleCallback(const common::ObstacleMap& obstacle_map);
-    void GetGeometryPath();
+    //void GetGeometryPath();
+    void ParamConfig();
 
   private:
     ros::NodeHandle nh_;
@@ -47,12 +55,15 @@ class PlanningNode {
 
     std::unique_ptr<RRT> rrt_ptr_;
 
-    Spline curve_x_;
-    Spline curve_y_;
+    //Spline curve_x_;
+    //Spline curve_y_;
 
     std::string planning_path_;
 
-    void ParamConfig();
+    Route route_;
+    PlanningVisualization planning_vis_;
+
+    ObstacleConfig obstacle_conf_;
 };
 }
 

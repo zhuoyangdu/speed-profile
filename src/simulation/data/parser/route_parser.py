@@ -14,7 +14,6 @@ if (__name__ == "__main__"):
     edge_dict = dict()
 
     for edge in edges:
-        print "****edge***"
         lane = edge.getElementsByTagName('lane')[0]
         edge_dict[edge.getAttribute("id")] = lane.getAttribute("shape")
 
@@ -37,10 +36,23 @@ if (__name__ == "__main__"):
     
     path_file.close()
 
-   
+    path_file = open("junction_route.txt", 'w')
     route = []
     for edge in edges:
-        if edge.hasAttribute("function"):
-            route.append(edge.getAttribute("shape"))
+        if not edge.hasAttribute("function"):
+            route.append(edge.getElementsByTagName("lane")[0].getAttribute("shape"))
+            string = edge.getElementsByTagName("lane")[0].getAttribute("shape") + '\n'
+            path_file.write(string)
 
-    print route
+    path_file.close()
+
+    import matplotlib.pyplot as plt
+    plt.figure("route")
+    plt.clf()
+    for sline in route:
+        points = sline.split(" ")
+        point1 = points[0].split(",")
+        point2 = points[1].split(",")
+        plt.plot([float(point1[0]), float(point2[0])], [float(point1[1]), float(point2[1])])
+    
+    plt.show()

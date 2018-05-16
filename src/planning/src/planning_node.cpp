@@ -8,9 +8,6 @@ PlanningNode::PlanningNode(const ros::NodeHandle& nh) {
     // Read the planning parameters and environment settings.
     ParamConfig();
 
-    // Import the given reference path.
-    GetGeometryPath();
-
     // Initialize the rrt planner.
     rrt_ptr_ = std::move(std::unique_ptr<RRT> (new RRT));
 }
@@ -43,19 +40,20 @@ void PlanningNode::Start() {
             if (localize_ready_ && obstacle_ready_) {
                 common::Trajectory trajectory;
                 rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
-                                             curve_x_, curve_y_, &trajectory);
+                                             &route_, &trajectory);
                 pub_trajectory_.publish(trajectory);
             }
             loop_rate.sleep();
         }
     } else {
-        // The single test mode only generates a trajectory for one period.
-        vehicle_state_ = single_test_vehicle_;
-        obstacle_map_.dynamic_obstacles = single_test_obstacles_;
-        common::Trajectory trajectory;
-        rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
-                                     curve_x_, curve_y_, &trajectory);
-        return;
+            planning_vis_.PubEnv();
+            // The single test mode only generates a trajectory for one period.
+            vehicle_state_ = single_test_vehicle_;
+            obstacle_map_.dynamic_obstacles = single_test_obstacles_;
+            common::Trajectory trajectory;
+            //rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
+            //                              &route_, &trajectory);
+            return;
     }
 }
 
@@ -70,51 +68,11 @@ void PlanningNode::ObstacleCallback(const common::ObstacleMap&
     obstacle_ready_ = true;
 }
 
-void SplitString(const std::string& s, const std::string& c,
-                 std::vector<std::string>* v) {
-    std::string::size_type pos1, pos2;
-    pos2 = s.find(c);
-    pos1 = 0;
-    while (std::string::npos != pos2) {
-        v->push_back(s.substr(pos1, pos2 - pos1));
-        pos1 = pos2 + c.size();
-        pos2 = s.find(c, pos1);
-    }
-    if (pos1 != s.length())
-        v->push_back(s.substr(pos1));
-}
-
-void PlanningNode::GetGeometryPath() {
-    std::vector<double> xs, ys;
-    std::string line;
-    std::string file_name = planning_path_ + "/data/path/" + road_file_;
-    std::ifstream file(file_name);
-    if (file.is_open()) {
-        int i;
-        while (getline(file, line)) {
-            std::vector<std::string> ps;
-            SplitString(line, "\t", &ps);
-            if (ps.size() < 3) {
-                continue;
-            }
-            double x, y;
-            x = atof(ps[0].c_str());
-            y = atof(ps[1].c_str());
-            xs.push_back(x);
-            ys.push_back(y);
-        }
-        file.close();
-    } else {
-        ROS_ERROR("cannot open path config file.");
-    }
-    double path_length;
-    Spline::fitCurve(xs, ys, &curve_x_, &curve_y_, &path_length);
-}
-
 void PlanningNode::ParamConfig() {
     ros::param::get("~single", single_test_);
     ros::param::get("~planning_path", planning_path_);
     ros::param::get("~road_file", road_file_);
+    /*
     if (single_test_) {
         std::string single_test_case;
         int collision_number;
@@ -172,7 +130,19 @@ void PlanningNode::ParamConfig() {
         }
         std::cout << "--------------------------------" << std::endl;
     }
+*/
+    std::string file_name = planning_path_ + "/config/obstacle_config.pb.txt";
+    if(!GetProtoFromFile(file_name, &obstacle_conf_)) {
+        ROS_ERROR("Error read config!");
+    } else {
+        std::cout << "obstacle size:" << obstacle_conf_.obstacle_size() << std::endl;
+        for (int i = 0; i < obstacle_conf_.obstacle_size(); ++i) {
+            std::cout << "obstacle id:" << obstacle_conf_.obstacle(i).id() << "," <<
+                obstacle_conf_.obstacle(i).x() << "," << obstacle_conf_.obstacle(i).y() << std::endl;
+        }
+    }
 }
+
 }  // namespace planning
 
 int main(int argc, char** argv) {

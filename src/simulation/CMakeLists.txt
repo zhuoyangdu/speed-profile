@@ -7,7 +7,6 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
-  sumo
   common
 )
 
@@ -21,10 +20,10 @@ include_directories(${catkin_INCLUDE_DIRS}
                     ${sumo_INCLUDES_DIRS}
 )
 
-add_executable(simulation_node src/simulation_node.cpp)
+# add_executable(simulation_node src/simulation_node.cpp)
 
-target_link_libraries(simulation_node
-  ${catkin_LIBRARIES}
-)
+#target_link_libraries(simulation_node
+#  ${catkin_LIBRARIES}
+#)
 
 
