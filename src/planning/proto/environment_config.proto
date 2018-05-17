@@ -1,0 +1,26 @@
+syntax = "proto2";
+
+package planning;
+
+message ObstacleStateConfig {
+    optional double x = 1;
+    optional double y = 2;
+    optional double theta = 3;
+    optional double v = 4;
+    optional double a = 5;
+    optional string id = 6;
+}
+
+message VehicleStateConfig {
+    optional int64 timestamp0 = 1;
+    optional double x0 = 2;
+    optional double y0 = 3;
+    optional double theta0 = 4;
+    optional double v0 = 5;
+    optional double a0 = 6;
+}
+
+message EnvConfig {
+    optional VehicleStateConfig init_vehicle_state = 1;
+    repeated ObstacleStateConfig obstacle = 2;
+}

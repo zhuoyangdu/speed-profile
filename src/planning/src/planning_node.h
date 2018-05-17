@@ -18,7 +18,7 @@
 #include "common/DynamicObstacle.h"
 #include "common/ObstacleMap.h"
 
-#include "obstacle_config.pb.h"
+#include "environment_config.pb.h"
 
 namespace planning {
 class PlanningNode {
@@ -55,15 +55,12 @@ class PlanningNode {
 
     std::unique_ptr<RRT> rrt_ptr_;
 
-    //Spline curve_x_;
-    //Spline curve_y_;
-
     std::string planning_path_;
 
     Route route_;
     PlanningVisualization planning_vis_;
 
-    planning::ObstacleConfig obstacle_conf_;
+    planning::EnvConfig env_conf_;
 };
 }
 

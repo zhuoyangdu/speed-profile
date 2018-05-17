@@ -17,7 +17,6 @@ void Route::GetGeometryPath() {
     if (file.is_open()) {
         int i;
         while (getline(file, line)) {
-            std::cout << "path:" << line << std::endl;
             std::vector<std::string> ps;
             common::StringUtils string_utils;
             string_utils.SplitString(line, ",", &ps);
