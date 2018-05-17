@@ -131,8 +131,9 @@ void PlanningNode::ParamConfig() {
         std::cout << "--------------------------------" << std::endl;
     }
 */
+
     std::string file_name = planning_path_ + "/config/obstacle_config.pb.txt";
-    if(!GetProtoFromFile(file_name, &obstacle_conf_)) {
+    if(!common::GetProtoFromASCIIFile(file_name, &obstacle_conf_)) {
         ROS_ERROR("Error read config!");
     } else {
         std::cout << "obstacle size:" << obstacle_conf_.obstacle_size() << std::endl;
@@ -146,6 +147,8 @@ void PlanningNode::ParamConfig() {
 }  // namespace planning
 
 int main(int argc, char** argv) {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
     ros::init(argc, argv, "planning_node");
     ros::NodeHandle nh;
     planning::PlanningNode planning_node(nh);

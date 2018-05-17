@@ -63,7 +63,7 @@ class PlanningNode {
     Route route_;
     PlanningVisualization planning_vis_;
 
-    ObstacleConfig obstacle_conf_;
+    planning::ObstacleConfig obstacle_conf_;
 };
 }
 
