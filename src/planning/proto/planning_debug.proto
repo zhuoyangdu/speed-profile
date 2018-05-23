@@ -1,0 +1,8 @@
+syntax = "proto2";
+
+package planning;
+
+message ObstacleMapDebug {
+	optional double init_path_length = 1;
+	
+}

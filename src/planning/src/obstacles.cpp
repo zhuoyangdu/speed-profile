@@ -204,6 +204,13 @@ double Obstacles::ReadDistanceMap(const Node& node) {
     return dist;
 }
 
+void Obstacles::recordDistanceMapProto() {
+    std::string file_name = planning_path_ + "/log/distance_map_dbg.pb.txt";
+    std::ofstream out_file(file_name.c_str(), std::ios::in | std::ios::app);
+    planning::ObstacleMapDebug obs_debug;
+    obs_debug.set_init_path_length(init_vehicle_path_length_);
+}
+
 void Obstacles::recordDistanceMap() {
     int nt = static_cast<int>(t_max_ / kDeltaT) + 1;
     int ns = static_cast<int>(s_max_ / kDeltaS) + 1;
@@ -225,4 +232,6 @@ void Obstacles::recordDistanceMap() {
         out_file_ << "\n";
     }
     out_file_.close();
+
+
 }

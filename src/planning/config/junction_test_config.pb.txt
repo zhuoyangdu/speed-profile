@@ -5,6 +5,7 @@ obstacle {
     v: 1
     a: 0
     id: "obs1"
+    timestamp: 54000
 }
 
 obstacle {
@@ -14,6 +15,7 @@ obstacle {
     v: 40
     a: 0
     id: "obs2"
+    timestamp: 54000
 }
 
 init_vehicle_state {

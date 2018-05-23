@@ -36,6 +36,15 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
                              Route* route,
                              common::Trajectory* trajectory) {
     cout << "Planning time:" << vehicle_state.timestamp << endl;
+    ROS_INFO("Vehicle state: x: %.3f, y: %.3f, theta: %.3f, v: %.3f",
+            vehicle_state.x, vehicle_state.y, vehicle_state.theta,
+            vehicle_state.velocity);
+    cout << "obstacle size:" << obstacle_map.dynamic_obstacles.size() << endl;
+    for (int i = 0; i < obstacle_map.dynamic_obstacles.size(); i++) {
+        common::DynamicObstacle obs = obstacle_map.dynamic_obstacles[i];
+        ROS_INFO("Obstacle: x: %.3f, y: %.3f, theta: %.3f, v: %.3f",
+            obs.x, obs.y, obs.theta, obs.velocity);
+    } 
 
     // record.
     newFile();
@@ -54,6 +63,7 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
     curve_x_ = route->get_x();
     curve_y_ = route->get_y();
     double s0 = GetGeometryPathLength(vehicle_state.x, vehicle_state.y);
+    cout << "s0:" << s0 << endl;
 
     // Initialize obstacles.
     obstacles.SetObstacles(obstacle_map);
@@ -64,7 +74,6 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
     Node first_node(0, s0);
     first_node.velocity = vehicle_state.velocity;
     first_node.acceleration = vehicle_state.acceleration;
-    // first_node.acceleration = 0;
     first_node.self_id = 0;
     first_node.parent_id = -1;
     tree_ = {first_node};

@@ -9,6 +9,7 @@ message ObstacleStateConfig {
     optional double v = 4;
     optional double a = 5;
     optional string id = 6;
+    optional int64 timestamp = 7;
 }
 
 message VehicleStateConfig {

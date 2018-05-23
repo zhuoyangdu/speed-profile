@@ -9,6 +9,9 @@
 #include "common/DynamicObstacle.h"
 #include "common/ObstacleMap.h"
 
+#include <common/file_config.h>
+#include "planning_debug.pb.h"
+
 namespace planning {
 class Obstacles {
   public:
@@ -63,6 +66,7 @@ class Obstacles {
     const double kDeltaS = 1.0;
 
     void recordDistanceMap();
+    void recordDistanceMapProto();
     double EuclideanDisToObs(double x, double y, double t);
 };
 } // namespace planning

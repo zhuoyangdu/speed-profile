@@ -46,9 +46,9 @@ void PlanningNode::Start() {
             loop_rate.sleep();
         }
     } else {
-            planning_vis_.PubEnv();
+            // planning_vis_.PubEnv();
             // The single test mode only generates a trajectory for one period.
-            // vehicle_state_ = single_test_vehicle_;
+            
             common::Trajectory trajectory;
             rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                           &route_, &trajectory);
@@ -73,7 +73,6 @@ void PlanningNode::ParamConfig() {
     ros::param::get("~planning_path", planning_path_);
     ros::param::get("~road_file", road_file_);
     if(single_test_) {
-
         std::string file_name = planning_path_ + "/config/junction_test_config.pb.txt";
         if(!common::GetProtoFromASCIIFile(file_name, &env_conf_)) {
             ROS_ERROR("Error read config!");
@@ -96,6 +95,8 @@ void PlanningNode::ParamConfig() {
             obs.theta = env_conf_.obstacle(i).theta();
             obs.velocity = env_conf_.obstacle(i).v();
             obs.acceleration = env_conf_.obstacle(i).a();
+            obs.timestamp = env_conf_.obstacle(i).timestamp();
+            dynamic_obstacles.push_back(obs);
         }
         obstacle_map_.dynamic_obstacles = dynamic_obstacles;
     }
