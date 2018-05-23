@@ -11,6 +11,8 @@ Obstacles::Obstacles() {
     ros::param::get("~rrt/collision_distance", collision_distance_);
     ros::param::get("~planning_path", planning_path_);
     ros::param::get("~rrt/safe_ttc", safe_ttc_);
+    ros::param::get("~rrt/t_goal", t_goal_);
+    ros::param::get("~rrt/max_vel", max_vel_);
 }
 
 void Obstacles::SetObstacles(const common::ObstacleMap& obstacle_map) {
@@ -114,6 +116,7 @@ void Obstacles::InitializeDistanceMap(
         }
     }
     recordDistanceMap();
+    std::cout << "record distance map" << recordDistanceMapProto() << std::endl;
     return;
 }
 
@@ -204,11 +207,16 @@ double Obstacles::ReadDistanceMap(const Node& node) {
     return dist;
 }
 
-void Obstacles::recordDistanceMapProto() {
+bool Obstacles::recordDistanceMapProto() {
     std::string file_name = planning_path_ + "/log/distance_map_dbg.pb.txt";
-    std::ofstream out_file(file_name.c_str(), std::ios::in | std::ios::app);
     planning::ObstacleMapDebug obs_debug;
     obs_debug.set_init_path_length(init_vehicle_path_length_);
+    obs_debug.set_delta_t(kDeltaT);
+    obs_debug.set_delta_s(kDeltaS);
+    obs_debug.set_t_goal(t_goal_);
+    obs_debug.set_max_vel(max_vel_);
+    obs_debug.set_danger_distance(danger_distance_);
+    return common::SetProtoToASCIIFile(obs_debug, file_name);
 }
 
 void Obstacles::recordDistanceMap() {

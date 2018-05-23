@@ -57,6 +57,8 @@ class Obstacles {
     double collision_distance_;
     double t_max_;
     double s_max_;
+    double t_goal_;
+    double max_vel_;
     double safe_ttc_;
     double NonlinearRisk(double input);
     double init_vehicle_path_length_;
@@ -66,7 +68,7 @@ class Obstacles {
     const double kDeltaS = 1.0;
 
     void recordDistanceMap();
-    void recordDistanceMapProto();
+    bool recordDistanceMapProto();
     double EuclideanDisToObs(double x, double y, double t);
 };
 } // namespace planning

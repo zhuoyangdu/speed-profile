@@ -4,5 +4,9 @@ package planning;
 
 message ObstacleMapDebug {
 	optional double init_path_length = 1;
-	
+	optional double delta_t = 2;
+	optional double delta_s = 3;
+	optional double t_goal = 4;
+	optional double max_vel = 5;
+	optional double danger_distance = 6;
 }
