@@ -52,7 +52,7 @@ void PlanningNode::Start() {
             common::Trajectory trajectory;
             rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                           &route_, &trajectory);
-            ros::spin();
+            // ros::spin();
             return;
     }
 }
@@ -69,10 +69,14 @@ void PlanningNode::ObstacleCallback(const common::ObstacleMap&
 }
 
 void PlanningNode::ParamConfig() {
-    ros::param::get("~single", single_test_);
+
     ros::param::get("~planning_path", planning_path_);
-    ros::param::get("~road_file", road_file_);
-    if(single_test_) {
+    std::string file_name = planning_path_ + "/config/planning_config.pb.txt";
+    if(!common::GetProtoFromASCIIFile(file_name, &planning_conf_)) {
+        ROS_ERROR("Error read config!");
+    }
+
+    if(planning_conf_.single()) {
         std::string file_name = planning_path_ + "/config/junction_test_config.pb.txt";
         if(!common::GetProtoFromASCIIFile(file_name, &env_conf_)) {
             ROS_ERROR("Error read config!");

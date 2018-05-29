@@ -1,0 +1,29 @@
+single: True
+road_file: "junction_path.txt"
+
+rrt {
+	max_failed_attemptes: 30000
+	t_max: 8
+	s_max: 100
+	t_goal: 5
+	v_goal: 12
+	dt: 0.1
+	max_acc: 5
+	max_vel: 15
+	max_heading_rate: 10
+	kr: 100
+	ks: 5
+	kv: 5
+	lower_range_t: 1
+	lower_range_s: 10
+	upper_range_t: 1
+	upper_range_s: 10
+	upper_range_a:0.1
+	lower_range_a:0.1
+	k_risk: 10
+	danger_distance: 4.5
+	safe_distance: 100
+	car_width: 3
+	collision_distance: 4.5
+	safe_ttc: 5	
+}

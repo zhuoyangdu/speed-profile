@@ -4,6 +4,7 @@
 from xml.dom.minidom import parse
 import xml.dom.minidom
 import os
+import math
 
 if (__name__ == "__main__"):
     
@@ -30,9 +31,30 @@ if (__name__ == "__main__"):
 
     path_file = open("junction_path.txt", 'w')
 
-    for edge in target_edges:
-        string = edge_dict[edge]+'\n'
-        path_file.write(string)
+    len_edges = len(target_edges)
+
+    for i in range(0, len_edges):
+        points = edge_dict[target_edges[i]].split(" ")
+        points1 = points[0].split(",")
+        points2 = points[1].split(",")
+        x1 = float(points1[0])
+        y1 = float(points1[1])
+        x2 = float(points2[0])
+        y2 = float(points2[1])      
+        print "points1: ", x1, y1
+        print "points2: ", x2, y2 
+        # path_file.write(string)
+
+        length = math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
+        for s in range(0, int(length), 5):
+            x = s/length * (x2-x1) + x1
+            y = s/length * (y2-y1) + y1
+            string = str(x) + "," + str(y) + "\n"
+            print string
+            path_file.write(string)
+
+        string = str(x2) + "," + str(y2) + "\n"
+        path_file.write(string)        
     
     path_file.close()
 

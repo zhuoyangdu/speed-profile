@@ -1,3 +1,5 @@
+function [final_path, tree, result_vehicle, result_obstacle] = parseLog
+
 log_file = fopen('../../log/rrt.txt');
 final_path = [];
 while 1
@@ -13,7 +15,6 @@ if strcmp(tline, 'final_path')
     end
     final_path = path;
     %plotPath(path);
-    %postProcessing;
 end
 if strcmp(tline, 'smoothing_path')
     path = [];
@@ -34,7 +35,6 @@ if strcmp(tline, 'tree')
         sline = str2double(strsplit(tline, '\t'));
         tree = [tree; sline];
     end
-    %plotTree(tree);
 end
 if strcmp(tline, 'moving_vehicle')
     result_vehicle = [];
@@ -45,5 +45,28 @@ if strcmp(tline, 'moving_vehicle')
         result_vehicle = [result_vehicle; sline];
     end
 end
+
+if strcmp(tline, 'moving_obstacle')
+    tline = fgetl(log_file);
+    sline = strsplit(tline, '\t');
+    obs_size = str2double(sline{1,2});
+    [row,col] = size(result_vehicle);
+    result_obstacle = zeros(obs_size, row, col);
+    num_obs = 1;
+    while 1
+        tline = fgetl(log_file);
+        if strcmp(tline, 'end_obstacle'), break; end
+        if strcmp(tline, 'start') obstacle = []; continue; end
+        if strcmp(tline, 'end') 
+            result_obstacle(num_obs, :, :) = obstacle; 
+            num_obs=num_obs+1; 
+            continue; 
+        end  
+        sline = str2double(strsplit(tline, '\t'));
+        obstacle = [obstacle; sline];
+    end
+end
+
 end
 fclose(log_file);
+end

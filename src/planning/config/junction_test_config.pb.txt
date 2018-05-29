@@ -1,18 +1,28 @@
 obstacle {
-    x: -130
+    x: -60
     y: -2.55
     theta: 1.57
-    v: 1
+    v: 10
     a: 0
     id: "obs1"
     timestamp: 54000
 }
 
 obstacle {
-    x: -60
+    x: 20
     y: -2.55
     theta: 1.57
-    v: 40
+    v: 5
+    a: 0
+    id: "obs3"
+    timestamp: 54000
+}
+
+obstacle {
+    x: 60
+    y: 2.55
+    theta: -1.57
+    v: 15
     a: 0
     id: "obs2"
     timestamp: 54000
@@ -20,9 +30,9 @@ obstacle {
 
 init_vehicle_state {
     timestamp0: 54000
-    x0: -100
+    x0: -40
     y0: -2.55
     theta0: 1.57
-    v0: 20
+    v0: 15
     a0: 0
 }

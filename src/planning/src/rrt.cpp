@@ -6,29 +6,13 @@
 using namespace std;
 using namespace planning;
 RRT::RRT() {
-    ros::param::get("~rrt/max_failed_attemptes", max_failed_attemptes_);
-    ros::param::get("~rrt/t_max", t_max_);
-    ros::param::get("~rrt/s_max", s_max_);
-    ros::param::get("~rrt/t_goal", t_goal_);
-    ros::param::get("~rrt/v_goal", v_goal_);
-    ros::param::get("~rrt/dt", dt_);
-    ros::param::get("~rrt/max_acc", max_acc_);
-    ros::param::get("~rrt/max_vel", max_vel_);
-    ros::param::get("~rrt/kr", kr_);
-    ros::param::get("~rrt/ks", ks_);
-    ros::param::get("~rrt/kv", kv_);
-    ros::param::get("~rrt/lower_range_t", lower_range_t_);
-    ros::param::get("~rrt/lower_range_s", lower_range_s_);
-    ros::param::get("~rrt/upper_range_t", upper_range_t_);
-    ros::param::get("~rrt/upper_range_s", upper_range_s_);
-    ros::param::get("~rrt/lower_range_a", lower_range_a_);
-    ros::param::get("~rrt/upper_range_a", upper_range_a_);
-    ros::param::get("~rrt/k_risk", k_risk_);
-    ros::param::get("~rrt/danger_distance", danger_distance_);
-    ros::param::get("~rrt/collision_distance", collision_distance_);
-    ros::param::get("~rrt/safe_distance", safe_distance_);
-    ros::param::get("~rrt/car_width", car_width_);
     ros::param::get("~planning_path", planning_path_);
+    std::string file_name = planning_path_ + "/config/planning_config.pb.txt";
+    if(!common::GetProtoFromASCIIFile(file_name, &planning_conf_)) {
+        ROS_ERROR("Error read config!");
+    } else {
+        rrt_conf_ = planning_conf_.rrt();
+    }
 }
 
 void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
@@ -60,6 +44,7 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
               << vehicle_state.theta << "\t" << vehicle_state.velocity << "\n";
 
     // Initialize path.
+    route_ = route_;
     curve_x_ = route->get_x();
     curve_y_ = route->get_y();
     double s0 = GetGeometryPathLength(vehicle_state.x, vehicle_state.y);
@@ -78,6 +63,8 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
     first_node.parent_id = -1;
     tree_ = {first_node};
 
+    PrintTree();
+
     int n_sample = 0;
     int n_feasible = 0;
     int n_path = 0;
@@ -87,11 +74,16 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
     clock_t start, ends;
     start = clock();
     srand(time(NULL));
-    while (n_sample < max_failed_attemptes_) {
+    while (n_sample < rrt_conf_.max_failed_attemptes()) {
+        // cout << endl;
+        // cout << "-------sample-------" << endl;
         // Sample.
         n_sample = n_sample + 1;
         Node sample = RandomSample(s0);
-        if (obstacles.ReadDistanceMap(sample) < collision_distance_) {
+        // cout << "sample:" << sample.time << "," << sample.distance << std::endl;
+
+        if (obstacles.ReadDistanceMap(sample) < rrt_conf_.collision_distance()) {
+            // ROS_ERROR("Collision: %.3f", obstacles.ReadDistanceMap(sample));
             continue;
         }
 
@@ -99,6 +91,8 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
         bool node_valid;
         Node new_node(-1, -1, -1);
         Extend(sample, &new_node, &node_valid);
+        // cout << "new_node:" << new_node.time << "," << new_node.distance << ",feasible" << node_valid << std::endl;
+
         if (node_valid) {
             n_feasible = n_feasible + 1;
             if (ReachingGoal(new_node)) {
@@ -127,7 +121,8 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
         }
     }
 
-    cout << "Optimal speed profile generated!" << endl;
+    cout << endl;
+    cout << "------Result------" << endl;
     cout << "Total attemps:" << n_sample << ", feasible sample:" << n_feasible <<
          endl;
     ends = clock();
@@ -137,6 +132,7 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
         std::deque<Node> final_path = PostProcessing(min_path);
         SendVisualization(final_path, curve_x_, curve_y_);
         std::vector<common::Pose> poses;
+        // std::cout << "final trajectory:" << std::endl;
         for (int i = 0; i < min_path.size(); i++) {
             common::Pose pose;
             pose.timestamp = min_path[i].time + vehicle_state.timestamp;
@@ -145,11 +141,15 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
             pose.x = curve_x_(pose.length);
             pose.y = curve_y_(pose.length);
             poses.push_back(pose);
+            // std::cout << "x:" << pose.x << ", y:" << pose.y << ", theta:" << pose.theta << std::endl;
         }
         trajectory->poses = poses;
     } else {
         ROS_ERROR("No path found.");
     }
+
+    cout << endl;
+    // PrintTree();
     return;
 }
 
@@ -159,6 +159,7 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid) {
     // Find nearest node.
     Node nearest_node;
     GetNearestNode(sample, &nearest_node, node_valid);
+    // cout << "nearest node:" << nearest_node.time << "," << nearest_node.distance << std::endl;
 
     if (!*node_valid) {
         return;
@@ -166,13 +167,15 @@ void RRT::Extend(Node& sample, Node* new_node, bool* node_valid) {
 
     // Steer to get new node.
     Steer(sample, nearest_node, new_node);
-    if (new_node->time > t_goal_) {
+    if (new_node->time > rrt_conf_.t_goal()) {
         *node_valid = false;
         return;
     }
 
     bool vertex_feasible = VertexFeasible(nearest_node, *new_node);
+
     if (vertex_feasible) {
+        // cout << "A feasible vertex!!!!!!!!!!!!!!!!" << endl;
         *node_valid = true;
         ChooseParent(nearest_node, new_node);
         Rewire(*new_node);
@@ -240,17 +243,18 @@ void RRT::ChooseParent(const Node& nearest_node, Node* new_node) {
 }
 
 double RRT::WeightingCost(std::vector<double>& cost) {
-    double w = kr_ * cost[0] + ks_ * cost[1] + kv_ * cost[2];
+    double w = rrt_conf_.kr() * cost[0] + rrt_conf_.ks() * cost[1]
+                + rrt_conf_.kv() * cost[2];
     return w;
 }
 
 Node RRT::RandomSample(double s0) {
     double sample_t = 0;
     double sample_s = 0;
-    double sample_s_range = s_max_ < t_max_ * max_vel_ ? s_max_ : t_max_ *
-                            max_vel_;
-    sample_t = (double) rand() / RAND_MAX * t_max_;
-    double s_range = sample_t * max_vel_;
+    double sample_s_range = rrt_conf_.s_max() < rrt_conf_.t_max() * rrt_conf_.max_vel()
+                            ? rrt_conf_.s_max() : rrt_conf_.t_max() * rrt_conf_.max_vel();
+    sample_t = (double) rand() / RAND_MAX * rrt_conf_.t_max();
+    double s_range = sample_t * rrt_conf_.max_vel();;
     sample_s = (double) rand() / RAND_MAX * s_range + s0;
     Node sample(sample_t, sample_s);
     return sample;
@@ -276,14 +280,14 @@ void RRT::GetNearestNode(const Node& sample,
             continue;
         } else {
             double vel = delta_s / delta_t;
-            if (vel > max_vel_) {
+            if (vel > rrt_conf_.max_vel()) {
                 continue;
             }
             if (delta_s <= 0) {
                 vel = 0;
             }
             double acc = (tree_[i].velocity - vel) / delta_t;
-            if (fabs(acc) > max_acc_) {
+            if (fabs(acc) > rrt_conf_.max_acc()) {
                 continue;
             } else {
                 double dist = fabs(acc) + delta_t;
@@ -309,8 +313,8 @@ void RRT::Steer(const Node& sample, const Node& nearest_node,
 
     double k = ComputeVelocity(sample, nearest_node);
     if (k <= 0) k = 0;
-    new_node->time = nearest_node.time + dt_;
-    new_node->distance = nearest_node.distance + k * dt_;
+    new_node->time = nearest_node.time + rrt_conf_.dt();
+    new_node->distance = nearest_node.distance + k * rrt_conf_.dt();
     new_node->velocity = k;
     new_node->self_id = tree_.size();
     return;
@@ -342,17 +346,26 @@ bool RRT::VertexFeasible(const Node& parent_node, const Node& child_node) {
     }
 
     double vel = ComputeVelocity(parent_node, child_node);
-    if (vel > max_vel_) {
+    if (vel > rrt_conf_.max_vel()) {
+        // ROS_ERROR("[unfeasible] velocity: %.3f, max_vel: %.3f", vel, rrt_conf_.max_vel());
         return false;
     }
 
     double acc = ComputeAcceleration(parent_node, child_node);
-    if (fabs(acc) > max_acc_) {
+    if (fabs(acc) > rrt_conf_.max_acc()) {
+        // ROS_ERROR("[unfeasible] acceleration: %.3f, max_acc: %.3f", acc, rrt_conf_.max_acc());
+        return false;
+    }
+
+    double curvature = route_.GetCurvature(parent_node.distance/2 + child_node.distance/2);
+    double heading_rate = vel * curvature;
+    if (fabs(heading_rate) > rrt_conf_.max_heading_rate()) {
         return false;
     }
 
     if (parent_node.self_id == 0) {
         if (abs(acc - parent_node.acceleration) > 2.5) {
+            // ROS_ERROR("[unfeasible] jerk");
             return false;
         }
     }
@@ -360,6 +373,7 @@ bool RRT::VertexFeasible(const Node& parent_node, const Node& child_node) {
     bool collision_free = obstacles.CollisionFree(parent_node, child_node,
                           curve_x_, curve_y_);
     if (!collision_free) {
+        // ROS_ERROR("[unfeasible] collision");
         return false;
     }
     return true;
@@ -408,7 +422,7 @@ double RRT::GetPathSmoothness(const std::deque<Node>& path) {
 double RRT::GetPathVelError(const std::deque<Node>& path) {
     double ev = 0;
     for (int i = 0; i < path.size(); i++) {
-        ev = ev + fabs(path[i].velocity - v_goal_);
+        ev = ev + fabs(path[i].velocity - rrt_conf_.v_goal());
     }
     return ev / path.size();
 }
@@ -439,7 +453,7 @@ std::vector<Node> RRT::GetLowerRegion(const Node& node) {
             double child_acc = ComputeAcceleration(tree_[i], node);
             double parent_acc = tree_[i].acceleration;
             double delta_acc = parent_acc - child_acc;
-            if (fabs(delta_acc) < lower_range_a_ && fabs(vel) < max_vel_) {
+            if (fabs(delta_acc) < rrt_conf_.lower_range_a() && fabs(vel) < rrt_conf_.max_vel()) {
                 near_region.push_back(tree_[i]);
             }
         }
@@ -457,7 +471,7 @@ std::vector<Node> RRT::GetUpperRegion(const Node& node) {
             double parent_acc = node.acceleration;
             double child_acc = ComputeAcceleration(node, tree_[i]);
             double delta_acc = parent_acc - child_acc;
-            if (fabs(delta_acc) < lower_range_a_ && vel < max_vel_) {
+            if (fabs(delta_acc) < rrt_conf_.lower_range_a() && vel < rrt_conf_.max_vel()) {
                 near_region.push_back(tree_[i]);
             }
         }
@@ -466,7 +480,7 @@ std::vector<Node> RRT::GetUpperRegion(const Node& node) {
 }
 
 bool RRT::ReachingGoal(const Node& node) {
-    if (abs(node.time - t_goal_) < 0.3) {
+    if (abs(node.time - rrt_conf_.t_goal()) < 0.3) {
         return true;
     }
     return false;
@@ -510,8 +524,9 @@ std::deque<Node>  RRT::PostProcessing(std::deque<Node>& path) {
         double n = 10 * (path[i + 1].time - path[i].time);
         for (int k = 0; k < n - 0.5; k++) {
             Node node;
-            node.time = path[i].time + k * dt_;
-            node.distance = path[i].distance + path[i + 1].velocity * dt_ * k;
+            node.time = path[i].time + k * rrt_conf_.dt();
+            node.velocity = path[i].velocity;
+            node.distance = path[i].distance + path[i + 1].velocity * rrt_conf_.dt() * k;
             full_path.push_back(node);
         }
     }
@@ -525,9 +540,12 @@ void RRT::SendVisualization(const std::deque<Node>& final_path,
     std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
 
     out_file_ << "final_path\n";
-    for (int i = 0; i < final_path.size(); i++) {
-        out_file_ << final_path[i].time << "\t" << final_path[i].distance << "\t" <<
-                  final_path[i].velocity << "\n";
+    for (int i = 0; i < final_path.size()-1; i++) {
+        double s = final_path[i].distance;
+        out_file_ << final_path[i].time << "\t" << s << "\t"
+                << final_path[i].velocity << "\t" << route_.x(s)
+                << "\t" << route_.y(s) << "\t" 
+                << route_.theta(s) << "\n";
     }
     out_file_ << "end_path\n";
 
@@ -539,15 +557,55 @@ void RRT::SendVisualization(const std::deque<Node>& final_path,
     out_file_ << "end_tree\n";
 
     out_file_ << "moving_vehicle\n";
-    for (int i = 0; i < t_goal_; i++) {
-        int k = i / dt_;
+    for (int i = 0; i < rrt_conf_.t_goal(); i++) {
+        int k = i / rrt_conf_.dt();
         double veh_x = curve_x(final_path[k].distance);
-        double veh_y = curve_y_(final_path[k].distance);
+        double veh_y = curve_y(final_path[k].distance);
         double angle = getAngle(final_path[k + 1], final_path[k], curve_x,
                                 curve_y);
         out_file_ << veh_x << "\t" << veh_y << "\t" << angle << "\n";
     }
     out_file_ << "end_vehicle\n";
+
+    out_file_ << "moving_obstacle\n";
+    std::vector<common::DynamicObstacle> all_obs = obstacles.GetObstacles();
+    out_file_ << "obs_size" << "\t" << all_obs.size() << "\n";
+    for (common::DynamicObstacle obs : all_obs) {
+        out_file_ << "start\n";
+        for (int i = 0; i < rrt_conf_.t_goal(); i++) {
+            double obs_pos_x = obs.x + obs.velocity * i * sin(obs.theta);
+            double obs_pos_y = obs.y + obs.velocity * i * cos(obs.theta);
+            double obs_angle = obs.theta;
+            out_file_ << obs_pos_x << "\t" << obs_pos_y << "\t" << obs_angle << "\n";
+        }  
+        out_file_ << "end\n";      
+    }
+
+    out_file_ << "end_obstacle\n";
+
     out_file_.close();
     return;
+}
+
+void RRT::PrintTree() {
+    std::cout << "-------------------------" << std::endl;
+    std::cout << "-----------tree----------" << std::endl;
+    for (Node n : tree_) {
+        std::cout << "t: " << n.time << ", s: " << n.distance << ", v: " << n.velocity
+            << ", a: " << n.acceleration << std::endl;
+    }
+    std::cout << "---------end-tree--------" << std::endl;
+    std::cout << "-------------------------" << std::endl;
+}
+
+
+void RRT::PrintPath(const std::vector<Node>& path) {
+    std::cout << "-------------------------" << std::endl;
+    std::cout << "-----------path----------" << std::endl;
+    for (Node n : path) {
+        std::cout << "t: " << n.time << ", s: " << n.distance << ", v: " << n.velocity
+            << ", a: " << n.acceleration << std::endl;
+    }
+    std::cout << "---------end-path--------" << std::endl;
+    std::cout << "-------------------------" << std::endl;
 }

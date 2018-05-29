@@ -1,0 +1,36 @@
+syntax = "proto2";
+
+package planning;
+
+message RRTConfig {
+	optional double max_failed_attemptes = 1;
+	optional double t_max = 2;
+	optional double s_max = 3;
+	optional double t_goal = 4;
+	optional double v_goal = 5;
+	optional double dt = 6;
+	optional double max_acc = 7;
+	optional double max_vel = 8;
+	optional double max_heading_rate = 24;
+	optional double kr = 9;
+	optional double ks = 10;
+	optional double kv = 11;
+	optional double lower_range_t = 12;
+	optional double lower_range_s = 13;
+	optional double upper_range_t = 14;
+	optional double upper_range_s = 15;
+	optional double upper_range_a = 16;
+	optional double lower_range_a = 17;
+	optional double k_risk = 18;
+	optional double danger_distance = 19;
+	optional double safe_distance = 20;
+	optional double car_width = 21;
+	optional double collision_distance = 22;
+	optional double safe_ttc = 23;
+}
+
+message PlanningConfig{
+	optional bool single = 1;
+	optional string road_file = 2;
+	optional RRTConfig rrt = 3;
+}

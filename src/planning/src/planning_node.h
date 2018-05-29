@@ -19,6 +19,7 @@
 #include "common/ObstacleMap.h"
 
 #include "environment_config.pb.h"
+#include "planning_config.pb.h"
 
 namespace planning {
 class PlanningNode {
@@ -60,6 +61,7 @@ class PlanningNode {
     Route route_;
     PlanningVisualization planning_vis_;
 
+    planning::PlanningConfig planning_conf_;
     planning::EnvConfig env_conf_;
 };
 }

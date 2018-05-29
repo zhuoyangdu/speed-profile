@@ -11,6 +11,7 @@
 
 #include <common/file_config.h>
 #include "planning_debug.pb.h"
+#include "planning_config.pb.h"
 
 namespace planning {
 class Obstacles {
@@ -48,9 +49,15 @@ class Obstacles {
                        const Spline& curve_x,
                        const Spline& curve_y);
 
+    std::vector<common::DynamicObstacle> GetObstacles() {
+      return obstacles_;
+    }
+  
   private:
     std::vector<common::DynamicObstacle> obstacles_;
     std::vector<std::vector<double>> distance_map_;
+    
+    /*
     double danger_distance_;
     double k_risk_;
     double safe_distance_;
@@ -60,6 +67,8 @@ class Obstacles {
     double t_goal_;
     double max_vel_;
     double safe_ttc_;
+
+    */
     double NonlinearRisk(double input);
     double init_vehicle_path_length_;
     double epsilon_ = 1e3;
@@ -70,5 +79,8 @@ class Obstacles {
     void recordDistanceMap();
     bool recordDistanceMapProto();
     double EuclideanDisToObs(double x, double y, double t);
+
+    planning::PlanningConfig planning_conf_;
+    planning::RRTConfig rrt_conf_;
 };
 } // namespace planning

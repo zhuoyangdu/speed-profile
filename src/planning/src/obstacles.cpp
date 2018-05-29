@@ -3,16 +3,13 @@ using namespace std;
 using namespace planning;
 
 Obstacles::Obstacles() {
-    ros::param::get("~rrt/k_risk", k_risk_);
-    ros::param::get("~rrt/danger_distance", danger_distance_);
-    ros::param::get("~rrt/safe_distance", safe_distance_);
-    ros::param::get("~rrt/t_max", t_max_);
-    ros::param::get("~rrt/s_max", s_max_);
-    ros::param::get("~rrt/collision_distance", collision_distance_);
     ros::param::get("~planning_path", planning_path_);
-    ros::param::get("~rrt/safe_ttc", safe_ttc_);
-    ros::param::get("~rrt/t_goal", t_goal_);
-    ros::param::get("~rrt/max_vel", max_vel_);
+    std::string file_name = planning_path_ + "/config/planning_config.pb.txt";
+    if(!common::GetProtoFromASCIIFile(file_name, &planning_conf_)) {
+        ROS_ERROR("Error read config!");
+    } else {
+        rrt_conf_ = planning_conf_.rrt();
+    }
 }
 
 void Obstacles::SetObstacles(const common::ObstacleMap& obstacle_map) {
@@ -35,7 +32,7 @@ bool Obstacles::CollisionFree(const Node& parent_node, const Node& child_node,
             double dist = pow(pow(obs_pos_x - vehicle_x, 2) + pow(obs_pos_y - vehicle_y,
                               2), 0.5);
             t = t + 0.5;
-            if (dist < collision_distance_) {
+            if (dist < rrt_conf_.collision_distance()) {
                 return false;
             }
         }
@@ -44,9 +41,9 @@ bool Obstacles::CollisionFree(const Node& parent_node, const Node& child_node,
 }
 
 double Obstacles::NonlinearRisk(double input) {
-    if (input > safe_distance_) return 0;
+    if (input > rrt_conf_.safe_distance()) return 0;
 
-    return k_risk_ / (input - danger_distance_);
+    return rrt_conf_.k_risk() / (input - rrt_conf_.danger_distance());
 }
 
 double Obstacles::RiskAssessment(const std::deque<Node>& path,
@@ -55,7 +52,7 @@ double Obstacles::RiskAssessment(const std::deque<Node>& path,
     if (obstacles_.empty()) {
         return 0;
     }
-    double max_ttc = safe_ttc_;
+    double max_ttc = rrt_conf_.safe_ttc();
     for (int i = 0; i < path.size(); i++) {
         double node_ttc = ComputeTTC(path[i].time, path[i].distance,
                                      path[i].velocity, curve_x, curve_y);
@@ -66,7 +63,7 @@ double Obstacles::RiskAssessment(const std::deque<Node>& path,
         }
     }
     double risk;
-    if (max_ttc < safe_ttc_) {
+    if (max_ttc < rrt_conf_.safe_ttc()) {
         risk = 1 / max_ttc;
     } else {
         risk = 0;
@@ -81,8 +78,8 @@ void Obstacles::InitializeDistanceMap(
     const Spline& curve_y,
     double s0) {
     init_vehicle_path_length_ = s0;
-    int nt = static_cast<int>(t_max_ / kDeltaT) + 1;
-    int ns = static_cast<int>(s_max_ / kDeltaS) + 1;
+    int nt = static_cast<int>(rrt_conf_.t_max() / kDeltaT) + 1;
+    int ns = static_cast<int>(rrt_conf_.s_max() / kDeltaS) + 1;
     // Init distance map.
     distance_map_.clear();
     for (int i = 0; i <= nt; i++) {
@@ -103,7 +100,7 @@ void Obstacles::InitializeDistanceMap(
             double s = j * kDeltaS;
             double vehicle_x = curve_x(s + s0);
             double vehicle_y = curve_y(s + s0);
-            double ss = safe_distance_;
+            double ss = rrt_conf_.safe_distance();
             for (int k = 0; k < obstacles_.size(); k++) {
                 common::DynamicObstacle obs = obstacles_[k];
                 double obs_pos_x = obs.x + obs.velocity * t * sin(obs.theta);
@@ -148,7 +145,7 @@ double Obstacles::ComputeTTC(double node_time, double node_distance,
         double veh_x = curve_x(node_distance + t * node_vel);
         double veh_y = curve_y(node_distance + t * node_vel);
         double distance = EuclideanDisToObs(veh_x, veh_y, t + node_time);
-        if (distance < collision_distance_) {
+        if (distance < rrt_conf_.collision_distance()) {
             ttc = t;
             break;
         }
@@ -167,10 +164,10 @@ const Spline& curve_y) {
 
     std::vector<std::vector<double>> ttc_for_vel;
     //t s v
-    for (int tt = 0; tt < 10 * t_max_; tt++) {
+    for (int tt = 0; tt < 10 * rrt_conf_.t_max(); tt++) {
         double t = tt * 0.1;
         std::vector<double> ttc_t;
-        for (int s = 0; s < s_max_; s++) {
+        for (int s = 0; s < rrt_conf_.s_max(); s++) {
             // Compute ttc of a node. (t, s, v)
             double ttc = ComputeTTC(t, current_path_length + s, node_vel,
                                     curve_x, curve_y);
@@ -197,7 +194,7 @@ void Obstacles::ComputeTTCMap(double current_path_length,
 
 double Obstacles::ReadDistanceMap(const Node& node) {
     if (obstacles_.size() < 1) {
-        return safe_distance_;
+        return rrt_conf_.safe_distance();
     }
     int index_t = static_cast<int>(node.time / kDeltaT);
     int index_s = static_cast<int>((node.distance - init_vehicle_path_length_) /
@@ -213,22 +210,22 @@ bool Obstacles::recordDistanceMapProto() {
     obs_debug.set_init_path_length(init_vehicle_path_length_);
     obs_debug.set_delta_t(kDeltaT);
     obs_debug.set_delta_s(kDeltaS);
-    obs_debug.set_t_goal(t_goal_);
-    obs_debug.set_max_vel(max_vel_);
-    obs_debug.set_danger_distance(danger_distance_);
+    obs_debug.set_t_goal(rrt_conf_.t_goal());
+    obs_debug.set_max_vel(rrt_conf_.max_vel());
+    obs_debug.set_danger_distance(rrt_conf_.danger_distance());
     return common::SetProtoToASCIIFile(obs_debug, file_name);
 }
 
 void Obstacles::recordDistanceMap() {
-    int nt = static_cast<int>(t_max_ / kDeltaT) + 1;
-    int ns = static_cast<int>(s_max_ / kDeltaS) + 1;
+    int nt = static_cast<int>(rrt_conf_.t_max() / kDeltaT) + 1;
+    int ns = static_cast<int>(rrt_conf_.s_max() / kDeltaS) + 1;
     std::string file_name_ = planning_path_ + "/log/distance_map.txt";
     std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
-    out_file_ << init_vehicle_path_length_ << "\t";
-    for (int j = 1; j <= ns; j++) {
-        out_file_ << 0 << "\t";
-    }
-    out_file_ << "\n";
+    // out_file_ << init_vehicle_path_length_ << "\t";
+    // for (int j = 1; j <= ns; j++) {
+    //     out_file_ << 0 << "\t";
+    // }
+    // out_file_ << "\n";
 
     for (int i = 0; i <= nt; i++) {
         for (int j = 0; j <= ns; j++) {

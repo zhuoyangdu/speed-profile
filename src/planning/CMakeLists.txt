@@ -18,7 +18,8 @@ find_package(Protobuf REQUIRED)
 include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS proto/environment_config.proto
-                                            proto/planning_debug.proto)
+                                            proto/planning_debug.proto
+                                            proto/planning_config.proto)
 ADD_LIBRARY(proto ${PROTO_HDRS} ${PROTO_SRCS})
 
 ADD_DEFINITIONS(-std=c++11)
