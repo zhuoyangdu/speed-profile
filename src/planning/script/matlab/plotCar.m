@@ -13,5 +13,4 @@ function plotCar(x,y,ang, color, facealpha)
     pos_rr = [pos_r(1) + width/2 * cos(ang), pos_r(2) - width/2 * sin(ang)];
     %plot([pos_f(1), pos_rr(1), pos_rl(1), pos_f(1)], [pos_f(2), pos_rr(2), pos_rl(2), pos_f(2)],color);
     patch([pos_f(1), pos_rr(1), pos_rl(1), pos_f(1)], [pos_f(2), pos_rr(2), pos_rl(2), pos_f(2)],color,'EdgeColor',color,'facealpha', facealpha);
-    
 end

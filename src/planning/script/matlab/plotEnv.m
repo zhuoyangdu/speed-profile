@@ -1,6 +1,9 @@
-function plotEnv
+function plotEnv(config)
 % plot reference path.
-fid = fopen('../../../simulation/data/path/junction_path.txt');
+road_file = ['../../../simulation/data/path/',config('road_file')];
+
+fid = fopen(road_file);
+
 yaml = textscan(fid, '%f,%f', 'EndOfLine', '\n');
 path_x = yaml{1,1};
 path_y = yaml{1,2};
@@ -10,37 +13,66 @@ plot(path_x, path_y);
 xlabel('x(m)');
 ylabel('y(m)');
 
-xDoc= xmlread('../../../simulation/data/junction.net.xml');
+if strcmp(config('scene'),'complex')
+    figure(1);
+    hold on;
+    axis equal;
+
+    plot([11.25, 11.25], [11.25, 500], 'b');
+    plot([-11.25, -11.25], [11.25, 500], 'b');
+    plot([11.25, 11.25], [-11.25, -500], 'b');
+    plot([-11.25, -11.25], [-11.25, -500], 'b');
+    plot([0, 0], [11.25, 500], 'b');
+    plot([0,0 ], [-11.25, -500], 'b');
+    
+    plot([11.25, 500], [11.25, 11.25], 'b');
+    plot([11.25, 500], [-11.25, -11.25], 'b');
+    plot([-11.25, -500], [11.25, 11.25], 'b');
+    plot([-11.25, -500], [-11.25, -11.25], 'b');
+    plot([11.25, 500], [0, 0], 'b');
+    plot([-11.25, -500], [0, 0],  'b');
+else 
+    
+scene = ['../../../simulation/data/', config('scene'), '.net.xml'];
+xDoc= xmlread(scene);
 xRoot = xDoc.getDocumentElement;
 xnet= xRoot.getElementsByTagName('edge');
 numEdge = xnet.getLength;
 allEdges = cell(1, numEdge);
-allEdgesShape = cell(1, numEdge);
+allEdgesShape = [];
 
 for i = 1:1:numEdge
+    if ~xnet.item(i-1).hasAttribute('function')
     allEdges{1,i} = xnet.item(i-1);
-    shape = xnet.item(i-1).getElementsByTagName('lane').item(0).getAttribute('shape');
-    allEdgesShape{1,i} = char(shape);
+    numLanes = xnet.item(i-1).getElementsByTagName('lane').getLength;
+    for k = 1:1:numLanes
+        shape = xnet.item(i-1).getElementsByTagName('lane').item(k-1).getAttribute('shape');
+        allEdgesShape = [allEdgesShape; {char(shape)}];
+    end
+    end
 end
 
 figure(1);
 hold on;
-for i = 1:1:numEdge
-    edge = allEdgesShape{1,i};
+for i = 1:1:length(allEdgesShape)
+    edge = allEdgesShape{i,1};
     sp = regexp(edge, ' ', 'split');
     points = zeros(length(sp), 2);
     if length(sp) == 2
+        disp(edge)
         for j = 1:1:length(sp)
             points(j,:) = double(strsplit(string(sp(j)), ','));
         end
         %plot(points(:,1), points(:,2));
         % disp(sp);
         for j = 1:1:length(sp)-1
-            out = plotWidth(points(j,:), points(j+1,:), 5);
+            out = plotWidth(points(j,:), points(j+1,:), 3.75);
             plot([out(1,1), out(2,1)], [out(1,2), out(2,2)], 'b');
             plot([out(3,1), out(4,1)], [out(3,2), out(4,2)], 'b');
     end
     end
+end
+
 end
 end
 

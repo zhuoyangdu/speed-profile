@@ -33,6 +33,7 @@ void PlanningNode::Start() {
     // for real-time traffic. The information of single test is given by the
     // config file, and the replanning test subscribes information from the
     // simulation environment SUMO.
+
     if (!single_test_) {
         while (ros::ok()) {
             ros::spinOnce();
@@ -48,7 +49,7 @@ void PlanningNode::Start() {
     } else {
             // planning_vis_.PubEnv();
             // The single test mode only generates a trajectory for one period.
-            
+
             common::Trajectory trajectory;
             rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                           &route_, &trajectory);
@@ -69,7 +70,6 @@ void PlanningNode::ObstacleCallback(const common::ObstacleMap&
 }
 
 void PlanningNode::ParamConfig() {
-
     ros::param::get("~planning_path", planning_path_);
     std::string file_name = planning_path_ + "/config/planning_config.pb.txt";
     if(!common::GetProtoFromASCIIFile(file_name, &planning_conf_)) {
@@ -77,7 +77,7 @@ void PlanningNode::ParamConfig() {
     }
 
     if(planning_conf_.single()) {
-        std::string file_name = planning_path_ + "/config/junction_test_config.pb.txt";
+        std::string file_name = planning_path_ + "/config/" + planning_conf_.test_config_file();
         if(!common::GetProtoFromASCIIFile(file_name, &env_conf_)) {
             ROS_ERROR("Error read config!");
         }

@@ -33,4 +33,6 @@ message PlanningConfig{
 	optional bool single = 1;
 	optional string road_file = 2;
 	optional RRTConfig rrt = 3;
+	optional string test_config_file = 4;
+	optional string scene = 5;
 }

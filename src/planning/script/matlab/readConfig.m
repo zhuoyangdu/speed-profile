@@ -1,18 +1,34 @@
 function config = readConfig()
 %%%%%%%%%%% read planning config %%%%%%%%%%%%%%%%%
 fid = fopen('../../config/planning_config.pb.txt');
+tline = fgetl(fid);
+file_name = []; file_locate = [];
+for i = 1:1:3
+    tline = fgetl(fid);
+    tline = regexprep(tline, ' ','');
+    tline = regexprep(tline, '"', '');
+    split_line = split(tline, ':');
+    file_name = [file_name;{char(split_line(1))}];
+    file_locate = [file_locate; {char(split_line(2))}];
+end
+
+road_file = (file_locate{1,1});
+test_config_file = (file_locate{2,1});
+
+
 [name, value] = parseProto('rrt {', fid);
 
 %%%%%%%%%%% read init state config %%%%%%%%%%%%%%%%%
-fid = fopen('../../config/junction_test_config.pb.txt');
+file = ['../../config/',test_config_file];
+fid = fopen(file);
 
 [vehicle_name, vehicle_value] = parseProto('init_vehicle_state {', fid);
 for i = 1:1:length(vehicle_name)
     vehicle_name{i,1} = ['veh_', vehicle_name{i,1}];
 end
 
-name = [name; vehicle_name];
-value = [value; vehicle_value];
+name = [file_name; name; vehicle_name];
+value = [file_locate; value; vehicle_value];
 
 config = containers.Map(name, value);
 end

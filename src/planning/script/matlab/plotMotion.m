@@ -1,9 +1,19 @@
 function plotMotion(config, result_vehicle, result_obstacle)
 figure(1);
-plotEnv;
-%axis([400,600,400,600]);
-%plot(road(:,1), road(:,2), 'r');
+plotComplexEnv;
 axis equal;
+
+% plot reference path.
+road_file = ['../../../simulation/data/path/',config('road_file')];
+fid = fopen(road_file);
+yaml = textscan(fid, '%f,%f', 'EndOfLine', '\n');
+path_x = yaml{1,1};
+path_y = yaml{1,2};
+fclose(fid);
+
+% plot map
+plot(path_x, path_y);
+
 
 %%%% plot vehicle %%%
 veh_x0 = str2double(config('veh_x0'));
@@ -24,23 +34,3 @@ for i = 1:1:obs_size
         plotCar(result_obstacle(i,k,1), result_obstacle(i,k,2), result_obstacle(i,k,3), 'b', 1.2-k*0.2);
     end   
 end
-
-%%% plot obstacles %%%
-%{
-for i=1:1:1
-    for k = 0:1:4
-        ox = obs(i,1) + obs(i,4)*k*sin(obs(i,3));
-        oy = obs(i,2) + obs(i,4)*k*cos(obs(i,3));
-        plotCar(ox,oy,obs(i,3),'b',1-k*0.2);
-    end
-end
-if length(obs(:,1))==2
-    for i=2:1:2
-        for k = 0:1:4
-            ox = obs(i,1) + obs(i,4)*k*sin(obs(i,3));
-            oy = obs(i,2) + obs(i,4)*k*cos(obs(i,3));
-            plotCar(ox,oy,obs(i,3),'g',1-k*0.2);
-        end
-    end
-end
-%}

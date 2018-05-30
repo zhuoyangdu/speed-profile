@@ -1,6 +1,8 @@
 clear;
 close all;
 
+plotDistanceMap;
+
 config = readConfig;
 [final_path, tree, result_vehicle, result_obstacle] = parseLog;
 
@@ -8,7 +10,9 @@ config = readConfig;
 plotMotion(config, result_vehicle, result_obstacle);
 
 % figure 2
-plotDistanceMap;
+
 plotTree(tree);
+
+plotPath(final_path);
 
 %plotInitState;

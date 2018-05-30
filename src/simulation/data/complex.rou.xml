@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <routes>
-  <vType accel="3.0" decel="6.0" id="CarA" length="5.0" minGap="2.5" maxSpeed="20.0" sigma="0.5" guiShape="evehicle" />
-  <vType accel="2.0" decel="6.0" id="CarB" length="7.5" minGap="2.5" maxSpeed="15.0" sigma="0.5" guiShape="evehicle" />
-  <vType accel="1.0" decel="5.0" id="CarC" length="5.0" minGap="2.5" maxSpeed="15.0" sigma="0.5" guiShape="evehicle"  />
+  <vType accel="3.0" decel="6.0" id="CarA" length="5.0" minGap="2.5" maxSpeed="20.0" sigma="0.5" guiShape="truck" />
+  <vType accel="2.0" decel="6.0" id="CarB" length="7.5" minGap="2.5" maxSpeed="15.0" sigma="0.5" guiShape="bus"/>
+  <vType accel="1.0" decel="5.0" id="CarC" length="5.0" minGap="2.5" maxSpeed="15.0" sigma="0.5" imgFile="car.png" />
 
-  <route id="route01" edges="L10 L0_21 L21_2"/>
-  <route id="route02" edges="L2_21 L21_0 L01"/>
-  <route id="route03" edges="L10 L0_31 L31_32 L32_33 L33_3"/>
-  <route id="route04" edges="L3_33 L33_32 L32_31 L31_0 L01" />
+  <route id="route01" edges="L10 L02"/>
+  <route id="route02" edges="L20 L01"/>
+  <route id="route03" edges="L10 L04"/>
+  <route id="route04" edges="L10 L03"/>
+  <route id="route05" edges="L30 L01"/>
 
-  <vehicle depart="54000" id="veh1" route="route03" type="CarA" color="1,0,0" departPos="0"/> 
+  <vehicle depart="54000" id="veh1" route="route03" type="CarA" color="1,0,0" departPos="0"/>
 
-  <vehicle depart="54000" id="veh1_1" route="route01" type="CarA" color="1,0,0" departPos="0"/> 
-  <vehicle depart="54000" id="veh1_2" route="route01" type="CarB" color="1,0,0" departPos="100"/> 
-  <vehicle depart="54000" id="veh1_3" route="route01" type="CarC" color="1,0,0" departPos="300"/> 
-  <vehicle depart="54000" id="veh1_4" route="route01" type="CarA" color="1,0,0" departPos="500"/> 
+  <vehicle depart="54000" id="veh1_1" route="route01" type="CarA" color="1,0,0" departPos="0"/>
+  <vehicle depart="54000" id="veh1_2" route="route01" type="CarB" color="1,0,0" departPos="100"/>
+  <vehicle depart="54000" id="veh1_3" route="route01" type="CarC" color="1,0,0" departPos="300"/>
+  <vehicle depart="54000" id="veh1_4" route="route01" type="CarA" color="1,0,0" departPos="500"/>
 
-  <vehicle depart="54000" departSpeed="0" id="veh2_1" route="route02" type="CarC" color="1,0,0" departPos="100"/>
+  <vehicle depart="54000" departSpeed="0" id="veh2_1" route="route02" type="CarA" color="1,0,0" departPos="100"/>
   <vehicle depart="54000" departSpeed="0" id="veh2_2" route="route02" type="CarC" color="1,0,0" departPos="300"/>
   <vehicle depart="54000" departSpeed="0" id="veh2_3" route="route02" type="CarC" color="1,0,0" departPos="400"/>
   <vehicle depart="54000" departSpeed="0" id="veh2_4" route="route02" type="CarC" color="1,0,0" departPos="500"/>
