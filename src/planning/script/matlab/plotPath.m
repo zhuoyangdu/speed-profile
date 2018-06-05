@@ -2,7 +2,7 @@ function plotPath(path)
 figure(4);
 xlabel('t(s)');
 ylabel('v(m/s)');
-ylim([10,20]);
+ylim([0,20]);
 grid on;
 title('path');
 hold on;

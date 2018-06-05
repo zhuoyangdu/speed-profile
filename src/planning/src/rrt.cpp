@@ -28,7 +28,7 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
         common::DynamicObstacle obs = obstacle_map.dynamic_obstacles[i];
         ROS_INFO("Obstacle: x: %.3f, y: %.3f, theta: %.3f, v: %.3f",
             obs.x, obs.y, obs.theta, obs.velocity);
-    } 
+    }
 
     // record.
     newFile();
@@ -75,17 +75,15 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
     start = clock();
     srand(time(NULL));
     while (n_sample < rrt_conf_.max_failed_attemptes()) {
-        // cout << endl;
-        // cout << "-------sample-------" << endl;
+
         // Sample.
-        n_sample = n_sample + 1;
         Node sample = RandomSample(s0);
-        // cout << "sample:" << sample.time << "," << sample.distance << std::endl;
 
         if (obstacles.ReadDistanceMap(sample) < rrt_conf_.collision_distance()) {
-            // ROS_ERROR("Collision: %.3f", obstacles.ReadDistanceMap(sample));
             continue;
         }
+
+        n_sample = n_sample + 1;
 
         // Extend.
         bool node_valid;
@@ -99,27 +97,23 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
                 n_path = n_path + 1;
                 std::deque<Node> path = GetParentPath(new_node);
                 std::vector<double> path_cost = GetPathCost(path);
+                cout << "risk: " << rrt_conf_.kr() * path_cost[0]
+                    << ", smoothness: " << rrt_conf_.ks() * path_cost[1]
+                    << ", e_val: " << rrt_conf_.kv() * path_cost[2] << std::endl;
                 double cost_sum = WeightingCost(path_cost);
                 if (cost_sum < min_cost) {
                     min_path = path;
                     min_cost = cost_sum;
-                    // std::ofstream out_file_(file_name_.c_str(), std::ios::in | std::ios::app);
-                    // out_file_ << "path\n";
-                    // for (int i = 0; i < path.size(); i++) {
-                    //     out_file_ << path[i].time << "\t" << path[i].distance << "\t" <<
-                    //              path[i].velocity << "\n";
-                    // }
-                    // out_file_ << "end_path\n";
-                    // out_file_ << "path_cost:" << cost_sum << "," << path_cost[0]*kr_ << ","
-                    //          << path_cost[1]*ks_ << "," << path_cost[2]*kv_ << "\n";
-                    //out_file_.close();
-                }
-                if (n_path > 20) {
-                    break;
                 }
             }
         }
     }
+
+    cout << "min_cost:" << std::endl;
+    std::vector<double> path_cost = GetPathCost(min_path);
+    cout << "risk: " << rrt_conf_.kr() * path_cost[0]
+        << ", smoothness: " << rrt_conf_.ks() * path_cost[1]
+        << ", e_val: " << rrt_conf_.kv() * path_cost[2] << std::endl;
 
     cout << endl;
     cout << "------Result------" << endl;
@@ -290,7 +284,7 @@ void RRT::GetNearestNode(const Node& sample,
             if (fabs(acc) > rrt_conf_.max_acc()) {
                 continue;
             } else {
-                double dist = fabs(acc) + delta_t;
+                double dist = 2*fabs(acc) + delta_t;
                 if (dist < min_dist) {
                     min_dist = dist;
                     min_index = i;
@@ -360,6 +354,7 @@ bool RRT::VertexFeasible(const Node& parent_node, const Node& child_node) {
     double curvature = route_.GetCurvature(parent_node.distance/2 + child_node.distance/2);
     double heading_rate = vel * curvature;
     if (fabs(heading_rate) > rrt_conf_.max_heading_rate()) {
+        ROS_ERROR("heading rate too large");
         return false;
     }
 
@@ -421,7 +416,6 @@ double RRT::GetPathSmoothness(const std::deque<Node>& path) {
     for (int i = 0; i < vector_acc.size()-1; ++i) {
         sum_jerk += fabs(vector_acc[i+1] - vector_acc[i]);
     }
-
 
     return variance_acc + rrt_conf_.k_jerk() * sum_jerk;
 }
@@ -529,11 +523,13 @@ std::deque<Node>  RRT::PostProcessing(std::deque<Node>& path) {
     std::deque<Node> full_path;
     for (int i = 0; i < path.size() - 1; i++) {
         double n = 10 * (path[i + 1].time - path[i].time);
+        double a = (path[i+1].velocity - path[i].velocity) / (path[i+1].time - path[i].time);
         for (int k = 0; k < n - 0.5; k++) {
             Node node;
             node.time = path[i].time + k * rrt_conf_.dt();
-            node.velocity = path[i].velocity;
-            node.distance = path[i].distance + path[i + 1].velocity * rrt_conf_.dt() * k;
+            node.velocity = path[i].velocity + a *k * rrt_conf_.dt();
+            node.distance = path[i].distance
+                + (path[i].velocity + node.velocity) * k * rrt_conf_.dt() / 2;
             full_path.push_back(node);
         }
     }
@@ -551,7 +547,7 @@ void RRT::SendVisualization(const std::deque<Node>& final_path,
         double s = final_path[i].distance;
         out_file_ << final_path[i].time << "\t" << s << "\t"
                 << final_path[i].velocity << "\t" << route_.x(s)
-                << "\t" << route_.y(s) << "\t" 
+                << "\t" << route_.y(s) << "\t"
                 << route_.theta(s) << "\n";
     }
     out_file_ << "end_path\n";
@@ -584,8 +580,8 @@ void RRT::SendVisualization(const std::deque<Node>& final_path,
             double obs_pos_y = obs.y + obs.velocity * i * cos(obs.theta);
             double obs_angle = obs.theta;
             out_file_ << obs_pos_x << "\t" << obs_pos_y << "\t" << obs_angle << "\n";
-        }  
-        out_file_ << "end\n";      
+        }
+        out_file_ << "end\n";
     }
 
     out_file_ << "end_obstacle\n";

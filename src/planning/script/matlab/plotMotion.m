@@ -2,18 +2,7 @@ function plotMotion(config, result_vehicle, result_obstacle)
 figure(1);
 plotComplexEnv;
 axis equal;
-
-% plot reference path.
-road_file = ['../../../simulation/data/path/',config('road_file')];
-fid = fopen(road_file);
-yaml = textscan(fid, '%f,%f', 'EndOfLine', '\n');
-path_x = yaml{1,1};
-path_y = yaml{1,2};
-fclose(fid);
-
-% plot map
-plot(path_x, path_y);
-
+plotReferencePath(config);
 
 %%%% plot vehicle %%%
 veh_x0 = str2double(config('veh_x0'));

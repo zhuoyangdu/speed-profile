@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <ros/ros.h>
 #include <time.h>
+#include <map>
 
 #include "common.h"
 #include "spline.h"
@@ -87,7 +88,7 @@ class RRT {
     std::deque<Node>  PostProcessing(std::deque<Node>& path);
 
     void PrintTree();
-    
+
     void PrintPath(const std::vector<Node>& path);
 
   private:
