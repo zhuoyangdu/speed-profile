@@ -416,7 +416,14 @@ double RRT::GetPathSmoothness(const std::deque<Node>& path) {
     }
     variance_acc = abs(variance_acc) / vector_acc.size() * 10;
     variance_acc = abs(vector_acc[1] - vector_acc[0]) + variance_acc;
-    return variance_acc;
+
+    double sum_jerk = 0;
+    for (int i = 0; i < vector_acc.size()-1; ++i) {
+        sum_jerk += fabs(vector_acc[i+1] - vector_acc[i]);
+    }
+
+
+    return variance_acc + rrt_conf_.k_jerk() * sum_jerk;
 }
 
 double RRT::GetPathVelError(const std::deque<Node>& path) {

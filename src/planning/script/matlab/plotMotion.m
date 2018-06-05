@@ -31,6 +31,6 @@ ylabel('y(m)');
 [obs_size, ~, ~] = size(result_obstacle);
 for i = 1:1:obs_size
     for k = 1:1:5
-        plotCar(result_obstacle(i,k,1), result_obstacle(i,k,2), result_obstacle(i,k,3), 'b', 1.2-k*0.2);
+        plotCar(result_obstacle(i,k,1), result_obstacle(i,k,2), result_obstacle(i,k,3), 'g', 1.2-k*0.2);
     end   
 end

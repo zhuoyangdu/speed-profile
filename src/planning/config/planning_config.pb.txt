@@ -1,10 +1,10 @@
 single: True
 road_file: "change_lane_path.txt"
-test_config_file: "change_lane_test_config.pb.txt"
+test_config_file: "turn_test_config.pb.txt"
 scene: "complex"
 
 rrt {
-	max_failed_attemptes: 30000
+	max_failed_attemptes: 80000
 	t_max: 8
 	s_max: 100
 	t_goal: 5
@@ -14,8 +14,9 @@ rrt {
 	max_vel: 20
 	max_heading_rate: 10
 	kr: 100
-	ks: 5
+	ks: 10
 	kv: 10
+	k_jerk: 1
 	lower_range_t: 1
 	lower_range_s: 10
 	upper_range_t: 1
@@ -23,7 +24,7 @@ rrt {
 	upper_range_a:0.1
 	lower_range_a:0.1
 	k_risk: 10
-	danger_distance: 4.5
+	danger_distance: 4
 	safe_distance: 100
 	car_width: 2.5
 	collision_distance: 4.5
