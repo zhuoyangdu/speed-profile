@@ -1,5 +1,5 @@
 single: False
-road_file: "center_lane_path.txt"
+road_file: "change_lane_path.txt"
 test_config_file: "test_config.pb.txt"
 scene: "complex"
 

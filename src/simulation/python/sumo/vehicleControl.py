@@ -61,7 +61,8 @@ def init_vehicle():
     traci.vehicle.setSpeedMode(self_veh.get_id(), 0)
     traci.vehicle.setSpeed(self_veh.get_id(), float(INIT_SPEED))
 
-    traci.vehicle.moveToXY(self_veh.get_id(), "L10", 2, -300 , -1.93, 90)
+    traci.vehicle.moveToXY(self_veh.get_id(), "L10", INIT_X, INIT_Y, 90)
+
     traci.simulationStep()
 
     for veh in traci.vehicle.getIDList():
@@ -121,8 +122,23 @@ def do_step(trajectory, trajectory_ready):
         t2 = trajectory.poses[index2].timestamp
         v1 = trajectory.poses[index1].velocity
         v2 = trajectory.poses[index2].velocity
+        x1 = trajectory.poses[index1].x
+        x2 = trajectory.poses[index2].x
+        y1 = trajectory.poses[index1].y
+        y2 = trajectory.poses[index2].y
+        
+        theta1 = trajectory.poses[index1].theta
+        theta2 = trajectory.poses[index2].theta
+
+        x = (x1 - x2) * (tc - t2)/(t1 - t2) + x1
+        y = (y1 - y2) * (tc - t2)/(t1 - t2) + y1
+        theta = (theta1 - theta2) * (tc - t2)/(t1 - t2) + theta1
 
         vel = (v1-v2)*(tc-t2)/(t1-t2) + v2
+        if (x < 0):
+            traci.vehicle.moveToXY(self_veh.get_id(),"L10",2, x, y, theta/3.1415*180)
+        else:
+            traci.vehicle.moveToXY(self_veh.get_id(), "L03", 2, x, y, theta/3.1415*180)
         traci.vehicle.setSpeed(self_veh.get_id(), vel)
     traci.simulationStep()
 
