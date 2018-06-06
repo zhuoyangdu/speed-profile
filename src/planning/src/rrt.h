@@ -29,7 +29,7 @@ class RRT {
   public:
     RRT();
 
-    void GenerateTrajectory(const common::Pose& vehicle_state,
+    bool GenerateTrajectory(const common::Pose& vehicle_state,
                             const common::ObstacleMap& obstacle_map,
                             Route* route,
                             common::Trajectory* trajectory);

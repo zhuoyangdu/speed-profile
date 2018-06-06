@@ -34,27 +34,30 @@ void PlanningNode::Start() {
     // config file, and the replanning test subscribes information from the
     // simulation environment SUMO.
 
-    if (!single_test_) {
+    if (!planning_conf_.single()) {
         while (ros::ok()) {
             ros::spinOnce();
             // Wait for localize message and traffic condition message.
             if (localize_ready_ && obstacle_ready_) {
                 common::Trajectory trajectory;
-                rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
+                bool is_path = rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
                                              &route_, &trajectory);
-                pub_trajectory_.publish(trajectory);
+                if (is_path) {
+                    pub_trajectory_.publish(trajectory);
+                    last_trajectory_ = trajectory;
+                } else {
+                    pub_trajectory_.publish(last_trajectory_);
+                }
             }
             loop_rate.sleep();
         }
     } else {
-            // planning_vis_.PubEnv();
-            // The single test mode only generates a trajectory for one period.
-
-            common::Trajectory trajectory;
-            rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
-                                          &route_, &trajectory);
-            // ros::spin();
-            return;
+        // The single test mode only generates a trajectory for one period.
+        common::Trajectory trajectory;
+        bool is_path = rrt_ptr_->GenerateTrajectory(vehicle_state_, obstacle_map_,
+                                      &route_, &trajectory);
+        // ros::spin();
+        return;
     }
 }
 
@@ -65,7 +68,15 @@ void PlanningNode::VehicleStateCallback(const common::Pose& localize) {
 
 void PlanningNode::ObstacleCallback(const common::ObstacleMap&
                                     obstacle_map) {
-    obstacle_map_ = obstacle_map;
+    std::vector<common::DynamicObstacle> danger_obs;
+    for (common::DynamicObstacle obs : obstacle_map.dynamic_obstacles) {
+        double distance = sqrt(pow(obs.x - vehicle_state_.x, 2)
+            + pow(obs.y - vehicle_state_.y, 2));
+        if (distance < planning_conf_.rrt().safe_distance()) {
+            danger_obs.push_back(obs);
+        }
+    }
+    obstacle_map_.dynamic_obstacles = danger_obs;
     obstacle_ready_ = true;
 }
 

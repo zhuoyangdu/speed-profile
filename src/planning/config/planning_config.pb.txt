@@ -1,10 +1,10 @@
-single: True
-road_file: "change_lane_path.txt"
-test_config_file: "change_lane_test_config.pb.txt"
+single: False
+road_file: "center_lane_path.txt"
+test_config_file: "test_config.pb.txt"
 scene: "complex"
 
 rrt {
-	max_failed_attemptes: 10000
+	max_failed_attemptes: 5000
 	t_max: 8
 	s_max: 100
 	t_goal: 5
@@ -27,6 +27,6 @@ rrt {
 	danger_distance: 3.6
 	safe_distance: 100
 	car_width: 2.5
-	collision_distance: 4.5
+	collision_distance: 2.5
 	safe_ttc: 5
 }

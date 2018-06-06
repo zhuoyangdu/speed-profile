@@ -15,4 +15,4 @@ plotTree(tree);
 
 plotPath(final_path);
 
-%plotInitState;
+plotInitState;

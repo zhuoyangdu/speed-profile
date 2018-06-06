@@ -15,7 +15,7 @@ RRT::RRT() {
     }
 }
 
-void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
+bool RRT::GenerateTrajectory(const common::Pose& vehicle_state,
                              const common::ObstacleMap& obstacle_map,
                              Route* route,
                              common::Trajectory* trajectory) {
@@ -23,7 +23,6 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
     ROS_INFO("Vehicle state: x: %.3f, y: %.3f, theta: %.3f, v: %.3f",
             vehicle_state.x, vehicle_state.y, vehicle_state.theta,
             vehicle_state.velocity);
-    cout << "obstacle size:" << obstacle_map.dynamic_obstacles.size() << endl;
     for (int i = 0; i < obstacle_map.dynamic_obstacles.size(); i++) {
         common::DynamicObstacle obs = obstacle_map.dynamic_obstacles[i];
         ROS_INFO("Obstacle: x: %.3f, y: %.3f, theta: %.3f, v: %.3f",
@@ -63,8 +62,6 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
     first_node.parent_id = -1;
     tree_ = {first_node};
 
-    PrintTree();
-
     int n_sample = 0;
     int n_feasible = 0;
     int n_path = 0;
@@ -97,9 +94,9 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
                 n_path = n_path + 1;
                 std::deque<Node> path = GetParentPath(new_node);
                 std::vector<double> path_cost = GetPathCost(path);
-                cout << "risk: " << rrt_conf_.kr() * path_cost[0]
-                    << ", smoothness: " << rrt_conf_.ks() * path_cost[1]
-                    << ", e_val: " << rrt_conf_.kv() * path_cost[2] << std::endl;
+                // cout << "risk: " << rrt_conf_.kr() * path_cost[0]
+                //    << ", smoothness: " << rrt_conf_.ks() * path_cost[1]
+                //    << ", e_val: " << rrt_conf_.kv() * path_cost[2] << std::endl;
                 double cost_sum = WeightingCost(path_cost);
                 if (cost_sum < min_cost) {
                     min_path = path;
@@ -109,11 +106,10 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
         }
     }
 
-    cout << "min_cost:" << std::endl;
-    std::vector<double> path_cost = GetPathCost(min_path);
-    cout << "risk: " << rrt_conf_.kr() * path_cost[0]
-        << ", smoothness: " << rrt_conf_.ks() * path_cost[1]
-        << ", e_val: " << rrt_conf_.kv() * path_cost[2] << std::endl;
+    //cout << "min_cost:" << std::endl;
+    //cout << "risk: " << rrt_conf_.kr() * path_cost[0]
+    //    << ", smoothness: " << rrt_conf_.ks() * path_cost[1]
+    //    << ", e_val: " << rrt_conf_.kv() * path_cost[2] << std::endl;
 
     cout << endl;
     cout << "------Result------" << endl;
@@ -126,7 +122,7 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
         std::deque<Node> final_path = PostProcessing(min_path);
         SendVisualization(final_path, curve_x_, curve_y_);
         std::vector<common::Pose> poses;
-        // std::cout << "final trajectory:" << std::endl;
+        std::cout << "final trajectory:" << std::endl;
         for (int i = 0; i < min_path.size(); i++) {
             common::Pose pose;
             pose.timestamp = min_path[i].time + vehicle_state.timestamp;
@@ -135,16 +131,18 @@ void RRT::GenerateTrajectory(const common::Pose& vehicle_state,
             pose.x = curve_x_(pose.length);
             pose.y = curve_y_(pose.length);
             poses.push_back(pose);
-            // std::cout << "x:" << pose.x << ", y:" << pose.y << ", theta:" << pose.theta << std::endl;
+            std::cout << "t:" << pose.timestamp << ", x:" << pose.x << ", y:"
+                << pose.y << ", v:" << pose.velocity << std::endl;
         }
         trajectory->poses = poses;
     } else {
         ROS_ERROR("No path found.");
+        return false;
     }
 
     cout << endl;
     // PrintTree();
-    return;
+    return true;
 }
 
 

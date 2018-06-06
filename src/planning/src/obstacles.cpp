@@ -113,7 +113,9 @@ void Obstacles::InitializeDistanceMap(
         }
     }
     recordDistanceMap();
-    std::cout << "record distance map" << recordDistanceMapProto() << std::endl;
+    if (!recordDistanceMapProto()) {
+        ROS_ERROR("Error in distance map.");
+    }
     return;
 }
 

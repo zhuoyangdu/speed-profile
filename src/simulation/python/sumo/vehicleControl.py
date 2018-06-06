@@ -43,7 +43,7 @@ def init():
     if options.gui:
         sumoExe = 'sumo-gui'
     sumoBinary = checkBinary(sumoExe)
-    file_path = os.getcwd() + '/../data/crossing.sumocfg'
+    file_path = os.getcwd() + '/src/simulation/data/complex.sumocfg'
     try:
         traci.start([sumoBinary, "-c", file_path])
     except Exception as e:
@@ -55,20 +55,27 @@ def destroy():
     print "Traci closed."
 
 def init_vehicle():
-    traci.vehicle.addFull(self_veh.get_id(), INIT_ROUTE,departPos=INIT_POS,departSpeed=INIT_SPEED)
+
+    traci.vehicle.addFull("self_veh", "route04", departPos="100", departLane="2", arrivalLane="2")
+
     traci.vehicle.setSpeedMode(self_veh.get_id(), 0)
     traci.vehicle.setSpeed(self_veh.get_id(), float(INIT_SPEED))
 
+    traci.vehicle.moveToXY(self_veh.get_id(), "L10", 2, -300 , -1.93, 90)
     traci.simulationStep()
 
     for veh in traci.vehicle.getIDList():
         if veh!= self_veh.get_id():
             traci.vehicle.setSpeedMode(veh, 0)
             traci.vehicle.setSpeed(veh, 5)
-            print "id:", veh
-            print "pos:", traci.vehicle.getPosition(veh)
-            print "angle:", traci.vehicle.getAngle(veh)
-            print "vel:", traci.vehicle.getSpeed(veh)
+            #print "id:", veh
+            #print "pos:", traci.vehicle.getPosition(veh)
+            #print "angle:", traci.vehicle.getAngle(veh)
+            #print "vel:", traci.vehicle.getSpeed(veh)
+    print "init position: ", traci.vehicle.getPosition("self_veh")
+    print "route: ", traci.vehicle.getRoute("self_veh")
+    print "distance: ", traci.vehicle.getDistance("self_veh")
+    print "LaneID:", traci.vehicle.getLaneID("self_veh")
     print "Self vehicle initialized."
 
     #print traci.vehicle.getShapeClass(self_veh.get_id())
@@ -88,14 +95,20 @@ def get_localize():
         localize.acceleration = 0
     else:
         localize.acceleration = (previous_velocity- localize.velocity)/(previous_time-localize.timestamp)
-        print "acceleration :", localize.acceleration
+        # print "acceleration :", localize.acceleration
     previous_velocity = localize.velocity
     previous_time = localize.timestamp
     return localize
 
 def do_step(trajectory, trajectory_ready):
     #print traci.simulation.getCurrentTime()
+    print "Trajectory:"
+    for pose in trajectory.poses:
+        print "t:", pose.timestamp, "x:", pose.x, "y:", pose.y, "v:", pose.velocity
+
     tc = float(traci.simulation.getCurrentTime()/1000.0)
+
+    print "tc:", tc
 
     if trajectory_ready:
         index1 = 0
@@ -110,10 +123,6 @@ def do_step(trajectory, trajectory_ready):
         v2 = trajectory.poses[index2].velocity
 
         vel = (v1-v2)*(tc-t2)/(t1-t2) + v2
-
-        print "t1:", t1, "v1", v1, "t2:",t2, "v2:",v2
-        print "tc:", tc, "vr:", vel, "vc:", traci.vehicle.getSpeed(self_veh.get_id())
-
         traci.vehicle.setSpeed(self_veh.get_id(), vel)
     traci.simulationStep()
 

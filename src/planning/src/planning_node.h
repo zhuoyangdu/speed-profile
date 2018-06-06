@@ -63,6 +63,8 @@ class PlanningNode {
 
     planning::PlanningConfig planning_conf_;
     planning::EnvConfig env_conf_;
+
+    common::Trajectory last_trajectory_;
 };
 }
 
