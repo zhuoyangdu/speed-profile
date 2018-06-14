@@ -1,9 +1,4 @@
 function plotMotion(config, result_vehicle, result_obstacle)
-figure(1);
-plotComplexEnv;
-axis equal;
-plotReferencePath(config);
-
 %%%% plot vehicle %%%
 veh_x0 = str2double(config('veh_x0'));
 veh_y0 = str2double(config('veh_y0'));
@@ -18,8 +13,13 @@ xlabel('x(m)');
 ylabel('y(m)');
 
 [obs_size, ~, ~] = size(result_obstacle);
+color_list = [0,1,0;
+              0,0,1;
+              1,1,0;
+              1,1,1;
+              0.5,0.5,0.5];
 for i = 1:1:obs_size
     for k = 1:1:5
-        plotCar(result_obstacle(i,k,1), result_obstacle(i,k,2), result_obstacle(i,k,3), 'g', 1.2-k*0.2);
+        plotCar(result_obstacle(i,k,1), result_obstacle(i,k,2), result_obstacle(i,k,3), color_list(i,:), 1.2-k*0.2);
     end   
 end

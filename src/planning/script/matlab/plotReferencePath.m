@@ -1,9 +1,7 @@
-function plotReferencePath(config)
-%PLOTREFERENCEPATH 此处显示有关此函数的摘要
-%   此处显示详细说明
+function plotReferencePath(config,path_locate)
 
 % plot reference path.
-road_file = ['../../../simulation/data/path/',config('road_file')];
+road_file = path_locate;
 fid = fopen(road_file);
 yaml = textscan(fid, '%f,%f', 'EndOfLine', '\n');
 path_x = yaml{1,1};
@@ -26,6 +24,6 @@ end
 path_x = path_x(index:i);
 path_y = path_y(index:i);
 % plot map
-plot(path_x, path_y);
+plot(path_x, path_y,'r--','LineWidth',0.5);
 end
 

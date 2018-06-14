@@ -2,9 +2,9 @@ function plotPath(path)
 figure(4);
 xlabel('t(s)');
 ylabel('v(m/s)');
+xlim([0,5]);
 ylim([0,20]);
 grid on;
-title('path');
 hold on;
 for i = 1:1:length(path(:,1))-1
     cn = path(i,:);

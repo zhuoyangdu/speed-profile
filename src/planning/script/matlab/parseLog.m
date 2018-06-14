@@ -1,6 +1,6 @@
-function [final_path, tree, result_vehicle, result_obstacle] = parseLog
+function [final_path, tree, result_vehicle, result_obstacle] = parseLog(rrt_locate)
 
-log_file = fopen('../../log/rrt.txt');
+log_file = fopen(rrt_locate);
 final_path = [];
 while 1
 tline = fgetl(log_file);

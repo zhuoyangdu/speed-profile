@@ -56,12 +56,12 @@ def destroy():
 
 def init_vehicle():
 
-    traci.vehicle.addFull("self_veh", "route04", departPos="100", departLane="2", arrivalLane="2")
-
+    #traci.vehicle.addFull("self_veh", "route04", departPos="100", departLane="2", arrivalLane="2")
+    traci.vehicle.addFull("self_veh", "route04", departLane="2", departPos="100", typeID="self")
     traci.vehicle.setSpeedMode(self_veh.get_id(), 0)
     traci.vehicle.setSpeed(self_veh.get_id(), float(INIT_SPEED))
 
-    traci.vehicle.moveToXY(self_veh.get_id(), "L10", INIT_X, INIT_Y, 90)
+    #traci.vehicle.moveToXY(self_veh.get_id(), "L10", 1, INIT_X, INIT_Y, 90)
 
     traci.simulationStep()
 
@@ -73,6 +73,8 @@ def init_vehicle():
             #print "pos:", traci.vehicle.getPosition(veh)
             #print "angle:", traci.vehicle.getAngle(veh)
             #print "vel:", traci.vehicle.getSpeed(veh)
+    print "type:", traci.vehicle.getVehicleClass("self_veh")
+    print "type id:", traci.vehicle.getTypeID("self_veh")
     print "init position: ", traci.vehicle.getPosition("self_veh")
     print "route: ", traci.vehicle.getRoute("self_veh")
     print "distance: ", traci.vehicle.getDistance("self_veh")
@@ -135,11 +137,23 @@ def do_step(trajectory, trajectory_ready):
         theta = (theta1 - theta2) * (tc - t2)/(t1 - t2) + theta1
 
         vel = (v1-v2)*(tc-t2)/(t1-t2) + v2
-        if (x < 0):
-            traci.vehicle.moveToXY(self_veh.get_id(),"L10",2, x, y, theta/3.1415*180)
+        a = (v1-v2)/(t2-t1)
+        s = v1 * (tc - t1) + 0.5 * a * (tc - t1) * (tc - t1)
+        s0 = math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
+        if (s0 == 0) :
+            k = 1
         else:
-            traci.vehicle.moveToXY(self_veh.get_id(), "L03", 2, x, y, theta/3.1415*180)
+            k = s / s0
+        xt = (x2 - x1) * k + x1
+        yt = (y2 - y1) * k + y1
+
+        #if (x < 0):
+        #    traci.vehicle.moveToXY(self_veh.get_id(),"L10",1, xt, yt, theta/3.1415*180)
+        #else:
+        #    traci.vehicle.moveToXY(self_veh.get_id(), "L03", 1, xt, yt, theta/3.1415*180)
+
         traci.vehicle.setSpeed(self_veh.get_id(), vel)
+        
     traci.simulationStep()
 
 def get_obstacles():

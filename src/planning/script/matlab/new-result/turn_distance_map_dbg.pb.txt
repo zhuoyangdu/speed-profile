@@ -1,0 +1,6 @@
+init_path_length: 270.21249148759631
+delta_t: 0.1
+delta_s: 1
+t_goal: 5
+max_vel: 20
+danger_distance: 3.6

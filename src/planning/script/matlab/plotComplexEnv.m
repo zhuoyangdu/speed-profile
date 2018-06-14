@@ -1,5 +1,4 @@
 function plotComplexEnv
-    figure(1);
     hold on;
     xlabel('x(m)');
     ylabel('y(m)');

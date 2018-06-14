@@ -3,6 +3,7 @@
   <vType accel="3.0" decel="6.0" id="CarA" length="5.0" minGap="2.5" maxSpeed="20.0" sigma="0.5" guiShape="truck" />
   <vType accel="2.0" decel="6.0" id="CarB" length="7.5" minGap="2.5" maxSpeed="15.0" sigma="0.5" guiShape="bus"/>
   <vType accel="1.0" decel="5.0" id="CarC" length="5.0" minGap="2.5" maxSpeed="15.0" sigma="0.5" imgFile="car.png" />
+  <vType accel="1.0" decel="5.0" id="self" length="5.0" minGap="2.5" maxSpeed="15.0" sigma="0.5" />
 
   <route id="route01" edges="L10 L02"/>
   <route id="route02" edges="L20 L01"/>

@@ -130,6 +130,7 @@ bool RRT::GenerateTrajectory(const common::Pose& vehicle_state,
             pose.length = min_path[i].distance;
             pose.x = curve_x_(pose.length);
             pose.y = curve_y_(pose.length);
+            pose.theta = atan2(curve_x_.deriv1(pose.length), curve_y_.deriv1(pose.length));
             poses.push_back(pose);
             std::cout << "t:" << pose.timestamp << ", x:" << pose.x << ", y:"
                 << pose.y << ", v:" << pose.velocity << std::endl;
@@ -268,7 +269,7 @@ void RRT::GetNearestNode(const Node& sample,
         double delta_s = sample.distance - tree_[i].distance;
         double delta_t = sample.time - tree_[i].time;
 
-        if (delta_s < -0.5 || delta_t < 0) {
+        if (delta_s < -0.1 || delta_t < 0) {
             continue;
         } else {
             double vel = delta_s / delta_t;
@@ -309,6 +310,7 @@ void RRT::Steer(const Node& sample, const Node& nearest_node,
     new_node->distance = nearest_node.distance + k * rrt_conf_.dt();
     new_node->velocity = k;
     new_node->self_id = tree_.size();
+    
     return;
 }
 
@@ -519,21 +521,34 @@ std::string RRT::int2string(int value) {
 
 std::deque<Node>  RRT::PostProcessing(std::deque<Node>& path) {
     std::deque<Node> full_path;
+
+    std::vector<double> path_s, path_t;
+    for (Node point : path) {
+        path_t.push_back(point.time);
+        path_s.push_back(point.distance);
+    }
+    Spline st;
+    st.setPoints(path_t, path_s);
+    
     for (int i = 0; i < path.size() - 1; i++) {
         double n = 10 * (path[i + 1].time - path[i].time);
         double a = (path[i+1].velocity - path[i].velocity) / (path[i+1].time - path[i].time);
-        for (int k = 0; k < n - 0.5; k++) {
+
+        double node_t = path[i].time;
+        while (node_t < path[i+1].time) {
             Node node;
-            node.time = path[i].time + k * rrt_conf_.dt();
-            node.velocity = path[i].velocity + a *k * rrt_conf_.dt();
-            node.distance = path[i].distance
-                + (path[i].velocity + node.velocity) * k * rrt_conf_.dt() / 2;
+            node.time = node_t;
+            node.velocity = path[i].velocity + a * (node_t - path[i].time);
+            node.distance = st(node_t);
             full_path.push_back(node);
+            node_t += rrt_conf_.dt();
         }
     }
     full_path.push_back(path.back());
     return full_path;
+
 }
+
 
 void RRT::SendVisualization(const std::deque<Node>& final_path,
                             const Spline& curve_x,

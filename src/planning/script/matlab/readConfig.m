@@ -1,4 +1,4 @@
-function config = readConfig()
+function config = readConfig(debug_file)
 %%%%%%%%%%% read planning config %%%%%%%%%%%%%%%%%
 fid = fopen('../../config/planning_config.pb.txt');
 tline = fgetl(fid);
@@ -12,14 +12,10 @@ for i = 1:1:3
     file_locate = [file_locate; {char(split_line(2))}];
 end
 
-road_file = (file_locate{1,1});
-test_config_file = (file_locate{2,1});
-
-
 [name, value] = parseProto('rrt {', fid);
 
 %%%%%%%%%%% read init state config %%%%%%%%%%%%%%%%%
-file = ['../../config/',test_config_file];
+file = debug_file;
 fid = fopen(file);
 
 [vehicle_name, vehicle_value] = parseProto('init_vehicle_state {', fid);

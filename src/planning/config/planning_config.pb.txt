@@ -1,10 +1,10 @@
-single: False
+single: True
 road_file: "change_lane_path.txt"
-test_config_file: "test_config.pb.txt"
+test_config_file: "emergency_stop_test_config.pb.txt"
 scene: "complex"
 
 rrt {
-	max_failed_attemptes: 5000
+	max_failed_attemptes: 25000
 	t_max: 8
 	s_max: 100
 	t_goal: 5
